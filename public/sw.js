@@ -1,9 +1,9 @@
-const CACHE = 'dorm-laundry-shell-v3';
+const CACHE = 'dorm-laundry-shell-v4';
 const NAV_CACHE = 'dorm-laundry-notification-navigation-v1';
 const NAV_REQUEST = new URL('/__laundry_notification_target__', self.location.origin).href;
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(['/', '/manifest.webmanifest', '/icons/laundry-192.png'])));
+  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(['/', '/manifest.webmanifest', '/icons/laundry-centered-192.png'])));
   self.skipWaiting();
 });
 
@@ -24,7 +24,7 @@ self.addEventListener('push', (event) => {
   try { data = { ...data, ...event.data.json() }; } catch {}
   event.waitUntil(self.registration.showNotification(data.title, {
     body: data.body,
-    icon: '/icons/laundry-192.png',
+    icon: '/icons/laundry-centered-192.png',
     badge: '/icons/badge.png',
     tag: `laundry-${data.type}-${data.washerId ?? 'app'}`,
     data: { url: data.url ?? '/' },
