@@ -1,49 +1,50 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Download, Smartphone, X } from 'lucide-react';
+import { Download, WashingMachine } from 'lucide-react';
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 };
 
-const DISMISS_KEY = 'laundry-install-dismissed-until';
-const DISMISS_MS = 7 * 24 * 60 * 60 * 1000;
+type Platform = 'ios' | 'android' | 'other';
 
 function isStandalone() {
   return window.matchMedia('(display-mode: standalone)').matches ||
     ('standalone' in navigator && (navigator as Navigator & { standalone?: boolean }).standalone === true);
 }
 
-function isIos() {
-  return /iPhone|iPad|iPod/i.test(navigator.userAgent) ||
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+function getPlatform(): Platform {
+  if (/iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) return 'ios';
+  if (/Android/i.test(navigator.userAgent)) return 'android';
+  return 'other';
 }
 
 export function useInstallPrompt() {
+  const [ready, setReady] = useState(false);
+  const [standalone, setStandalone] = useState(false);
+  const [platform, setPlatform] = useState<Platform>('other');
   const [promptEvent, setPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
-  const [ios, setIos] = useState(false);
-  const [installed, setInstalled] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
-  const [showSteps, setShowSteps] = useState(false);
+  const [justInstalled, setJustInstalled] = useState(false);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    setInstalled(isStandalone());
-    setIos(isIos());
-    setDismissed(Number(localStorage.getItem(DISMISS_KEY) ?? 0) > Date.now());
+    setStandalone(isStandalone());
+    setPlatform(getPlatform());
+    setReady(true);
 
     const onBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
       setPromptEvent(event as BeforeInstallPromptEvent);
     };
     const onAppInstalled = () => {
-      setInstalled(true);
+      setJustInstalled(true);
       setPromptEvent(null);
     };
     const displayMode = window.matchMedia('(display-mode: standalone)');
-    const onDisplayModeChange = () => setInstalled(isStandalone());
+    const onDisplayModeChange = () => setStandalone(isStandalone());
 
     window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt);
     window.addEventListener('appinstalled', onAppInstalled);
@@ -55,50 +56,57 @@ export function useInstallPrompt() {
     };
   }, []);
 
-  const kind = installed || dismissed ? null : promptEvent ? 'native' : ios ? 'ios' : null;
-
-  function dismiss() {
-    localStorage.setItem(DISMISS_KEY, String(Date.now() + DISMISS_MS));
-    setDismissed(true);
-  }
-
   async function install() {
     if (!promptEvent || busy) return;
     setBusy(true);
-    setPromptEvent(null);
     try {
       await promptEvent.prompt();
       const choice = await promptEvent.userChoice;
-      if (choice.outcome === 'accepted') setInstalled(true);
-      else dismiss();
+      if (choice.outcome === 'accepted') setJustInstalled(true);
     } catch {
-      dismiss();
+      // The browser may invalidate a deferred prompt; show its menu instructions instead.
     } finally {
+      setPromptEvent(null);
       setBusy(false);
     }
   }
 
-  return { kind, busy, showSteps, setShowSteps, install, dismiss };
+  return { ready, standalone, platform, canPrompt: !!promptEvent, justInstalled, busy, install };
 }
 
-export function InstallPrompt({ prompt }: { prompt: ReturnType<typeof useInstallPrompt> }) {
-  if (!prompt.kind) return null;
+export function InstallGate({ prompt }: { prompt: ReturnType<typeof useInstallPrompt> }) {
+  return <div className="onboarding-backdrop">
+    <section className="onboarding-card install-gate-card" aria-labelledby="install-gate-title">
+      <div className="onboarding-icon"><WashingMachine size={24} /></div>
+      <p className="brand">기숙사 세탁실</p>
+      <h1 id="install-gate-title">앱을 설치한 뒤 이용해주세요</h1>
+      <p className="lead">설치가 끝나면 홈 화면의 ‘세탁실’ 아이콘을 눌러 앱을 열어주세요.</p>
 
-  return <section className="install-prompt" aria-label="앱 설치 안내">
-    <div className="install-prompt-icon">{prompt.kind === 'native' ? <Download size={20} /> : <Smartphone size={20} />}</div>
-    <div className="install-prompt-content">
-      <strong>세탁실 앱으로 더 편하게</strong>
-      <p>{prompt.kind === 'native' ? '홈 화면에 추가하면 QR과 세탁 상태를 빠르게 확인할 수 있어요.' : 'iPhone에서는 Safari 공유 메뉴에서 홈 화면에 추가할 수 있어요.'}</p>
-      <button className="install-prompt-action" type="button" disabled={prompt.busy} onClick={prompt.kind === 'native' ? prompt.install : () => prompt.setShowSteps(!prompt.showSteps)}>
-        {prompt.kind === 'native' ? prompt.busy ? '설치 창 여는 중…' : '앱 설치하기' : prompt.showSteps ? '방법 접기' : '설치 방법 보기'}
-      </button>
-      {prompt.kind === 'ios' && prompt.showSteps && <ol className="install-prompt-steps">
-        <li>Safari에서 이 사이트를 엽니다.</li>
-        <li>하단의 공유 버튼을 누릅니다.</li>
-        <li>‘홈 화면에 추가’를 누르고 ‘추가’를 선택합니다.</li>
-        <li>홈 화면에 생긴 앱을 열어 등록합니다.</li>
-      </ol>}
-    </div>
-    <button className="install-prompt-close" type="button" onClick={prompt.dismiss} aria-label="설치 안내 닫기"><X size={18} /></button>
-  </section>;
+      {prompt.canPrompt && !prompt.justInstalled && <button className="button install-gate-action" type="button" onClick={prompt.install} disabled={prompt.busy}>
+        <Download size={18} />{prompt.busy ? '설치 창 여는 중…' : '앱 설치하기'}
+      </button>}
+
+      {prompt.platform === 'ios' && <div className="install-gate-instructions">
+        <strong>iPhone · iPad 설치 방법</strong>
+        <ol>
+          <li>Safari에서 이 사이트를 엽니다.</li>
+          <li>공유 버튼을 누르고 ‘홈 화면에 추가’를 선택합니다.</li>
+          <li>‘웹 앱으로 열기’를 켜고 ‘추가’를 누릅니다.</li>
+        </ol>
+      </div>}
+
+      {prompt.platform === 'android' && !prompt.canPrompt && !prompt.justInstalled && <div className="install-gate-instructions">
+        <strong>Android 설치 방법</strong>
+        <p>Chrome의 메뉴(⋮)에서 ‘앱 설치’ 또는 ‘홈 화면에 추가’를 선택해주세요.</p>
+      </div>}
+
+      {prompt.platform === 'other' && !prompt.canPrompt && !prompt.justInstalled && <div className="install-gate-instructions">
+        <strong>설치 방법</strong>
+        <p>브라우저 메뉴에서 ‘앱 설치’ 또는 ‘홈 화면에 추가’를 선택해주세요. 메뉴가 보이지 않으면 Chrome이나 Edge에서 열어주세요.</p>
+      </div>}
+
+      {prompt.justInstalled && <p className="install-gate-success" role="status">설치가 완료되었습니다. 홈 화면 또는 앱 목록에서 ‘세탁실’을 열어주세요.</p>}
+      <p className="install-gate-footer">이미 설치했다면 브라우저 탭을 닫고 앱 아이콘으로 다시 열어주세요.</p>
+    </section>
+  </div>;
 }

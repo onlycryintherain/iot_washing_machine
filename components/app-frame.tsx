@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Home, WashingMachine } from 'lucide-react';
 import { Onboarding } from '@/components/onboarding';
-import { InstallPrompt, useInstallPrompt } from '@/components/install-prompt';
+import { InstallGate, useInstallPrompt } from '@/components/install-prompt';
 
 const items = [
   { href: '/', label: '홈', Icon: Home },
@@ -44,13 +44,20 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     setNeedsOnboarding(false);
   }
 
-  if (!admin && (!initialized || needsOnboarding)) {
-    return initialized ? <Onboarding onComplete={finishOnboarding} installPrompt={<InstallPrompt prompt={installPrompt} />} /> : <div className="app-startup" aria-label="앱을 여는 중">기숙사 세탁실을 여는 중…</div>;
+  if (!admin && (!initialized || !installPrompt.ready)) {
+    return <div className="app-startup" aria-label="앱을 여는 중">기숙사 세탁실을 여는 중…</div>;
+  }
+
+  if (!admin && !installPrompt.standalone) {
+    return <InstallGate prompt={installPrompt} />;
+  }
+
+  if (!admin && needsOnboarding) {
+    return <Onboarding onComplete={finishOnboarding} />;
   }
 
   return <>
     <main className="app-main">
-      {!admin && <InstallPrompt prompt={installPrompt} />}
       {notice && <div className="notice onboarding-result" role="status">{notice}<button className="text-link" onClick={() => setNotice('')}>확인</button></div>}
       {children}
     </main>

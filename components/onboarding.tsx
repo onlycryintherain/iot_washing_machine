@@ -53,17 +53,15 @@ async function savePushSubscription(token: string, subscription: PushSubscriptio
   if (!response.ok) throw new Error('알림 등록을 완료하지 못했습니다.');
 }
 
-export function Onboarding({ onComplete, installPrompt }: { onComplete: (notice?: string) => void; installPrompt?: React.ReactNode }) {
+export function Onboarding({ onComplete }: { onComplete: (notice?: string) => void }) {
   const [name, setName] = useState('');
   const [studentId, setStudentId] = useState('');
   const [publicKey, setPublicKey] = useState('');
-  const [installHint, setInstallHint] = useState(false);
   const [existingToken] = useState(() => typeof window === 'undefined' ? '' : localStorage.getItem('laundry-token') ?? '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    setInstallHint(isIos() && !isInstalled());
     fetch('/api/push/subscribe').then((response) => response.json()).then((data) => {
       if (typeof data.publicKey === 'string') setPublicKey(data.publicKey);
     }).catch(() => {});
@@ -138,7 +136,6 @@ export function Onboarding({ onComplete, installPrompt }: { onComplete: (notice?
       <p className="brand">기숙사 세탁실</p>
       <h1 id="onboarding-title">처음 한 번만 등록해주세요</h1>
       <p className="lead">이름과 학번을 입력하면 세탁기를 바로 사용할 수 있어요.</p>
-      {installPrompt}
       <div className="onboarding-push-note"><BellRing size={18}/><span>등록을 마치면 세탁 완료 알림 허용창이 이어서 열립니다.</span></div>
       <form onSubmit={submit}>
         <label className="eyebrow" htmlFor="student-name">이름</label>
@@ -147,9 +144,8 @@ export function Onboarding({ onComplete, installPrompt }: { onComplete: (notice?
         <input className="input" id="student-id" autoComplete="off" inputMode="numeric" maxLength={32} value={studentId} onChange={(event) => setStudentId(event.target.value)} placeholder="학번을 입력하세요" required />
         <p className="onboarding-privacy">학번은 이용자 확인을 위해 저장되며, 세탁기 화면에 표시하지 않습니다.</p>
         {error && <p className="error" role="alert">{error}</p>}
-        <button className="button" type="submit" disabled={busy || installHint || !name.trim() || !studentId.trim()}>{installHint ? '홈 화면에 추가한 뒤 등록하기' : busy ? '등록 중…' : '등록하고 시작하기'}</button>
+        <button className="button" type="submit" disabled={busy || !name.trim() || !studentId.trim()}>{busy ? '등록 중…' : '등록하고 시작하기'}</button>
       </form>
-      {installHint && <p className="onboarding-install-hint">iPhone/iPad에서는 먼저 Safari 공유 메뉴에서 ‘홈 화면에 추가’를 선택하세요. 설치된 앱을 열고 등록을 마치면 알림 허용창이 열립니다.</p>}
     </section>
   </div>;
 }
