@@ -10,3 +10,72 @@
 .install-gate-card>.lead{margin-bottom:22px}.install-gate-action{display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:18px}.install-gate-instructions{padding:17px;border-radius:13px;background:var(--green-soft);font-size:13px;line-height:1.7}.install-gate-instructions strong{display:block;margin-bottom:5px;color:var(--green)}.install-gate-instructions ol{margin:6px 0 0;padding-left:19px}.install-gate-instructions p{margin:4px 0 0}.install-gate-success{padding:14px;border-radius:12px;background:var(--green-soft);color:var(--green);font-size:13px;line-height:1.6}.install-gate-footer{margin:18px 0 0;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;line-height:1.6}
 .scan-preview{position:relative;display:grid;place-items:center;width:100%;aspect-ratio:1;margin:22px 0 16px;overflow:hidden;border-radius:18px;background:#17211b}.scan-preview video{width:100%;height:100%;object-fit:cover}.scan-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#f7f7f4;font-size:14px}.scan-target{position:absolute;width:62%;aspect-ratio:1;border:3px solid #fff;border-radius:18px;box-shadow:0 0 0 999px #0003;pointer-events:none}.scan-action{display:flex;align-items:center;justify-content:center;gap:9px}.scan-manual-link{margin-top:12px}
 .button:disabled{cursor:not-allowed}.button[aria-busy="true"]{cursor:progress}.simulator-help{margin:7px 0 12px}.simulator-user-create{display:flex;align-items:center;gap:8px;margin:0 0 12px}.simulator-user-create .input{flex:1;min-width:0;margin:0}.simulator-user-create .button{flex:none}.simulator-lock{display:inline-flex;align-items:center;gap:5px;margin-top:25px;border:0;background:transparent;cursor:pointer}@media(max-width:560px){.simulator-user-create{flex-direction:column;align-items:stretch}.simulator-user-create .button{width:100%}}
+
+/* Student PWA: Toss reference colors and hierarchy, adapted to the laundry flow. */
+body:has(.student-app),body:has(.onboarding-backdrop){background:#f2f4f6}
+.app-main.student-app,.onboarding-backdrop{
+  --ink:#191f28;--muted:#8b95a1;--line:#e5e8eb;--paper:#f2f4f6;
+  --green:#3182f6;--green-soft:#e8f3ff;--blue:#1b64da;--blue-soft:#e8f3ff;--red:#e42939;
+  color:var(--ink)
+}
+.app-main.student-app{padding:0 18px calc(92px + env(safe-area-inset-bottom));background:var(--paper)}
+.student-app .topline{position:sticky;z-index:8;top:0;min-height:55px;margin:0 -18px 20px;padding:calc(12px + env(safe-area-inset-top)) 18px 12px;border-bottom:1px solid #e5e8ebad;background:#ffffffc9;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.student-app .brand{color:#1b64da;font-size:14px;letter-spacing:-.02em}
+.student-app h1{font-size:27px;line-height:1.3;letter-spacing:-.045em;font-weight:700}
+.student-app h2{font-size:17px;line-height:1.4;font-weight:700}
+.student-app .lead{color:#4e5968;font-size:14px;line-height:1.55}
+.student-app .section{margin-top:22px}
+.student-app .section-head{margin-bottom:10px}
+.student-app .section-head a,.student-app .text-link{color:#1b64da}
+.student-app .summary,.student-app .status-panel,.student-app .detail-list,.student-app .washer-row,.student-app .notice{border:1px solid #e5e8eb;background:#fff;border-radius:12px;box-shadow:0 6px 20px #191f280a}
+.student-app .summary{margin-top:18px;padding:16px}
+.student-app .summary-item+.summary-item{border-left:1px solid #e5e8eb}
+.student-app .summary-value{font-size:24px}
+.student-app .washer-row{min-height:65px;margin:0 0 8px;padding:13px 16px;transition:transform .12s,box-shadow .12s}
+.student-app .washer-row:active{transform:scale(.99)}
+.student-app .washer-row-main{gap:4px}
+.student-app .washer-name{font-size:15px;color:#191f28}
+.student-app .statusline{font-size:12px;color:#4e5968}
+.student-app .dot.busy{background:#3182f6}
+.student-app .dot.done{background:#12a989}
+.student-app .notice{margin:14px 0;padding:14px 16px;color:#4e5968}
+.student-app .notice.use-guide{border-color:#d6eaff;background:#e8f3ff}
+.student-app .status-panel{margin:16px 0;padding:18px;border-bottom:1px solid #e5e8eb}
+.student-app .status-panel .status-big{margin:12px 0 5px;font-size:26px;line-height:1.35}
+.student-app .tag{border-radius:12px;background:#f2f4f6;color:#4e5968}
+.student-app .tag.busy{background:#e8f3ff;color:#1b64da}
+.student-app .tag.done{background:#e5f8f2;color:#00826d}
+.student-app .detail-list{margin-top:16px;padding:0 15px}
+.student-app .detail-row{padding:14px 0}
+.student-app .detail-row:last-child{border-bottom:0}
+.student-app .action-stack{margin-top:16px}
+.student-app .button,.onboarding-backdrop .button{min-height:52px;border-radius:4px;background:#3182f6;color:#fff;font-weight:700;box-shadow:none}
+.student-app .button:hover:not(:disabled),.onboarding-backdrop .button:hover:not(:disabled){background:#2272eb}
+.student-app .button.secondary{border:1px solid #d4e7ff;background:#e8f3ff;color:#1b64da}
+.student-app .button.danger{border:1px solid #f5cfd3;background:#fff;color:#e42939}
+.student-app .button.secondary:hover:not(:disabled){background:#d9ebff}
+.student-app .button.danger:hover:not(:disabled){background:#fff4f5}
+.student-app .button.small{min-height:38px;border-radius:4px}
+.student-app .home-scan-button{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:18px;text-decoration:none}
+.student-app .input,.onboarding-backdrop .input{border:0;border-bottom:2px solid #d1d6db;border-radius:0;background:transparent;padding:11px 0;outline:none;color:#191f28}
+.student-app .input:focus,.onboarding-backdrop .input:focus{border-bottom-color:#3182f6}
+.student-app .error,.onboarding-backdrop .error{color:#e42939}
+.student-app .back{color:#1b64da}
+.student-app .scan-preview{border-radius:12px}
+.student-app .scan-target{border-radius:12px}
+.student-tabbar{border-top:1px solid #e5e8eb;background:#ffffffd9;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.student-tabbar .tab{min-height:42px;color:#8b95a1}
+.student-tabbar .tab.active{color:#3182f6}
+.student-tabbar .tab.active svg{stroke-width:2.2}
+.student-app :is(a,button,input):focus-visible,.onboarding-backdrop :is(a,button,input):focus-visible,.student-tabbar a:focus-visible{outline:3px solid #8bc0ff;outline-offset:3px}
+.onboarding-backdrop{background:#f2f4f6}
+.onboarding-backdrop .onboarding-card{border:1px solid #e5e8eb;border-radius:12px;box-shadow:0 12px 36px #191f2812}
+.onboarding-backdrop .onboarding-card h1{font-size:27px;font-weight:700}
+.onboarding-backdrop .onboarding-icon{border-radius:12px;background:#e8f3ff;color:#3182f6}
+.onboarding-backdrop .brand{color:#1b64da}
+.onboarding-backdrop .lead{color:#4e5968}
+.onboarding-backdrop .onboarding-push-note,.onboarding-backdrop .install-gate-instructions,.onboarding-backdrop .install-gate-success{border-radius:12px;background:#e8f3ff;color:#1b64da}
+.onboarding-backdrop .onboarding-privacy,.onboarding-backdrop .install-gate-footer{color:#8b95a1}
+.onboarding-backdrop .install-gate-instructions strong{color:#1b64da}
+@media(min-width:700px){.app-main.student-app{padding-top:0}}
+@media(prefers-reduced-motion:reduce){.student-app .washer-row{transition:none}}

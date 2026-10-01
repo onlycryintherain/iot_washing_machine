@@ -58,11 +58,11 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   }
 
   return <>
-    <main className="app-main">
+    <main className={admin ? 'app-main' : 'app-main student-app'}>
       {notice && <div className="notice onboarding-result" role="status">{notice}<button className="text-link" onClick={() => setNotice('')}>확인</button></div>}
       {children}
     </main>
-    {!admin && <nav className="tabbar" aria-label="주 메뉴">{items.map(({ href, label, Icon }) =>
+    {!admin && <nav className="tabbar student-tabbar" aria-label="주 메뉴">{items.map(({ href, label, Icon }) =>
       <Link href={href} key={href} className={path === href ? 'tab active' : 'tab'}><Icon size={20} strokeWidth={1.8}/><span>{label}</span></Link>
     )}</nav>}
   </>;
