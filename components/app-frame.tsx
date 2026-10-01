@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Home, ScanLine, WashingMachine } from 'lucide-react';
 import { Onboarding } from '@/components/onboarding';
@@ -16,6 +16,7 @@ const items = [
 
 export function AppFrame({ children }: { children: React.ReactNode }) {
   const path = usePathname();
+  const router = useRouter();
   const admin = path.startsWith('/admin');
   const [initialized, setInitialized] = useState(false);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
@@ -45,6 +46,43 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     setInitialized(true);
     return () => window.removeEventListener('laundry-profile-updated', syncProfile);
   }, [admin]);
+
+  useEffect(() => {
+    if (!('serviceWorker' in navigator) || !('caches' in window)) return;
+    const cacheName = 'dorm-laundry-notification-navigation-v1';
+    const cacheKey = '/__laundry_notification_target__';
+    const validPath = (value: unknown): value is string => typeof value === 'string' && /^\/washer\/[^/?#]+$/.test(value);
+    const open = (target: string) => { if (window.location.pathname !== target) router.push(target); };
+
+    const consume = async () => {
+      try {
+        const cache = await caches.open(cacheName);
+        const response = await cache.match(cacheKey);
+        if (!response) return;
+        await cache.delete(cacheKey);
+        const data = await response.json();
+        if (validPath(data.path) && typeof data.at === 'number' && Date.now() - data.at < 120_000) open(data.path);
+      } catch (error) {
+        console.error('Notification navigation failed', error);
+      }
+    };
+    const onMessage = (event: MessageEvent) => {
+      if (event.data?.type !== 'LAUNDRY_NOTIFICATION_OPEN' || !validPath(event.data.path)) return;
+      open(event.data.path);
+      void caches.open(cacheName).then((cache) => cache.delete(cacheKey)).catch(console.error);
+    };
+    const onVisible = () => { if (!document.hidden) void consume(); };
+
+    void consume();
+    navigator.serviceWorker.addEventListener('message', onMessage);
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onVisible);
+    return () => {
+      navigator.serviceWorker.removeEventListener('message', onMessage);
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onVisible);
+    };
+  }, [router]);
 
   function finishOnboarding(pushNotice?: string) {
     setNotice(pushNotice ?? '');

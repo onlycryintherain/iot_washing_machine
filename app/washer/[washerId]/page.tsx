@@ -10,6 +10,7 @@ import { WasherStatus } from '@/components/washer-status';
 type Washer = WasherSummary & {
   reservedAt: string | null;
   lastActivityAt: string | null;
+  isMine: boolean;
 };
 
 function timeLabel(value: string | null) {
@@ -19,26 +20,11 @@ function timeLabel(value: string | null) {
 export default function WasherPage({ params }: { params: Promise<{ washerId: string }> }) {
   const { washerId } = use(params);
   const [washer, setWasher] = useState<Washer | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState('');
   const [actionError, setActionError] = useState('');
   const [offline, setOffline] = useState(false);
   const [busy, setBusy] = useState(false);
-
-  useEffect(() => {
-    const syncIdentity = () => {
-      try {
-        const saved = JSON.parse(localStorage.getItem('laundry-user') ?? 'null');
-        setUserId(saved?.id ?? null);
-      } catch {
-        setUserId(null);
-      }
-    };
-    syncIdentity();
-    window.addEventListener('laundry-profile-updated', syncIdentity);
-    return () => window.removeEventListener('laundry-profile-updated', syncIdentity);
-  }, []);
 
   useEffect(() => {
     let live = true;
@@ -95,7 +81,7 @@ export default function WasherPage({ params }: { params: Promise<{ washerId: str
         }
         throw new Error(typeof data.error === 'string' ? data.error : '요청을 처리하지 못했습니다.');
       }
-      setWasher(data.washer);
+      setWasher({ ...data.washer, isMine: action === 'reserve' });
     } catch (error) {
       setActionError(error instanceof Error ? error.message : '요청을 처리하지 못했습니다.');
     } finally {
@@ -103,7 +89,7 @@ export default function WasherPage({ params }: { params: Promise<{ washerId: str
     }
   }
 
-  const own = !!washer?.currentUserId && washer.currentUserId === userId;
+  const own = !!washer?.isMine;
   const finished = washer?.state === 'FINISHED' || washer?.state === 'WAITING_FOR_PICKUP';
   const status = washer ? washerPresentation(washer.state) : null;
   const headline = washer?.state === 'RESERVED' && !own
