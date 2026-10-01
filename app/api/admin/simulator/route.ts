@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { asc, eq } from 'drizzle-orm';
 import { getDb } from '@/lib/db';
-import { sessions, subscriptions, washers, users } from '@/lib/db/schema';
+import { subscriptions, washers, users } from '@/lib/db/schema';
 import { processWasherEvent, reserveWasher } from '@/lib/washer/service';
 import { createUser } from '@/lib/auth/identity';
 import { apiError } from '@/lib/http';
@@ -14,15 +14,14 @@ export async function GET(request: Request) {
   if (!authorized(request)) return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 });
   try {
     const db = getDb();
-    const [machineList, userList, sessionList, pushList] = await Promise.all([
+    const [machineList, userList, pushList] = await Promise.all([
       db.select().from(washers).orderBy(asc(washers.id)),
       db.select({ id: users.id, nickname: users.nickname, userCode: users.userCode }).from(users),
-      db.select().from(sessions),
       db.select({ userId: subscriptions.userId }).from(subscriptions),
     ]);
     const subscribed = new Set(pushList.map((item) => item.userId));
     const withElapsed = machineList.map((washer) => ({ ...washer, elapsedMinutes: washer.startedAt && ['RUNNING', 'MAYBE_FINISHED'].includes(washer.state) ? Math.max(0, Math.floor((Date.now() - washer.startedAt.getTime()) / 60000)) : null }));
-    return NextResponse.json({ washers: withElapsed, users: userList.map((item) => ({ ...item, hasPush: subscribed.has(item.id) })), sessions: sessionList });
+    return NextResponse.json({ washers: withElapsed, users: userList.map((item) => ({ ...item, hasPush: subscribed.has(item.id) })) });
   } catch (error) { return apiError(error); }
 }
 

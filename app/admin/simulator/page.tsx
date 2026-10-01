@@ -1,7 +1,7 @@
 'use client';
 /* eslint-disable react-hooks/set-state-in-effect -- restore a saved admin session after hydration */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, RotateCcw } from 'lucide-react';
 import type { WasherState } from '@/lib/washer/state-machine';
@@ -44,35 +44,45 @@ export default function Simulator() {
   const [secondsLeft, setSecondsLeft] = useState(12);
   const [message, setMessage] = useState('');
   const [messageIsError, setMessageIsError] = useState(false);
+  const refreshId = useRef(0);
+  const backgroundLoading = useRef(false);
 
   function showMessage(text: string, isError = false) {
     setMessage(text);
     setMessageIsError(isError);
   }
 
-  const load = useCallback(async (credential: string): Promise<boolean> => {
+  const load = useCallback(async (credential: string, silent = false): Promise<boolean> => {
+    if (silent && backgroundLoading.current) return true;
+    if (silent) backgroundLoading.current = true;
+    const id = ++refreshId.current;
     try {
       const response = await fetch('/api/admin/simulator', { headers: { 'x-admin-password': credential }, cache: 'no-store' });
       if (!response.ok) {
-        setOk(false);
-        setMessage('운영자 비밀번호를 확인해주세요.');
-        setMessageIsError(true);
+        if (id === refreshId.current) {
+          setOk(false);
+          setMessage('운영자 비밀번호를 확인해주세요.');
+          setMessageIsError(true);
+        }
         return false;
       }
       const data = await response.json() as SimulatorData;
+      if (id !== refreshId.current) return true;
       setWashers(data.washers);
       setUsers(data.users);
+      const preferred = new URLSearchParams(window.location.search).get('washer');
       setSelected((current) => current && data.washers.some((washer) => washer.id === current)
         ? current
-        : data.washers.find((washer) => washer.state === 'IDLE')?.id ?? data.washers[0]?.id ?? '');
+        : data.washers.find((washer) => washer.id === preferred)?.id ?? data.washers.find((washer) => washer.state === 'IDLE')?.id ?? data.washers[0]?.id ?? '');
       setOk(true);
       return true;
     } catch {
-      setOk(false);
-      setMessage('운영 정보를 불러오지 못했습니다. 네트워크 연결을 확인해주세요.');
-      setMessageIsError(true);
+      if (!silent && id === refreshId.current) {
+        setMessage('운영 정보를 불러오지 못했습니다. 네트워크 연결을 확인해주세요.');
+        setMessageIsError(true);
+      }
       return false;
-    }
+    } finally { if (silent) backgroundLoading.current = false; }
   }, []);
 
   useEffect(() => {
@@ -83,6 +93,19 @@ export default function Simulator() {
     }
   }, [load]);
 
+  useEffect(() => {
+    if (!ok || !password || demoRunning) return;
+    const refresh = () => { if (!document.hidden) void load(password, true); };
+    const interval = setInterval(refresh, 1500);
+    document.addEventListener('visibilitychange', refresh);
+    window.addEventListener('focus', refresh);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', refresh);
+      window.removeEventListener('focus', refresh);
+    };
+  }, [ok, password, demoRunning, load]);
+
   async function login() {
     if (!password) return;
     if (await load(password)) {
@@ -92,6 +115,7 @@ export default function Simulator() {
   }
 
   async function request(data: object) {
+    refreshId.current++;
     setBusy(true);
     showMessage('');
     try {
@@ -102,7 +126,10 @@ export default function Simulator() {
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || '요청에 실패했습니다.');
-      await load(password);
+      refreshId.current++;
+      if (result.washer) setWashers((current) => current.map((washer) => washer.id === result.washer.id ? result.washer : washer));
+      if (result.user) setUsers((current) => [...current, { ...result.user, hasPush: false }]);
+      void load(password, true);
       return result;
     } catch (cause) {
       showMessage(cause instanceof Error ? cause.message : '요청에 실패했습니다.', true);
@@ -150,6 +177,7 @@ export default function Simulator() {
   }
 
   function lock() {
+    refreshId.current++;
     sessionStorage.removeItem('admin-pass');
     setOk(false);
     setPassword('');
@@ -167,7 +195,7 @@ export default function Simulator() {
   return <main className="admin-shell">
     <div className="topline"><Link className="back" href="/admin"><ArrowLeft /></Link><span className="brand">운영 도구</span></div>
     <h1>세탁기 시뮬레이터</h1>
-    <p className="lead">사용자를 등록한 뒤 세탁을 시작하면 약 12초 후 자동으로 종료됩니다.</p>
+    <p className="lead">사용자를 등록한 뒤 세탁을 시작하면 약 12초 후 자동으로 종료됩니다. 세탁기 상태는 자동으로 갱신됩니다.</p>
 
     {!ok ? <section className="section">
       <label className="eyebrow" htmlFor="simulator-password">운영자 비밀번호</label>
@@ -180,7 +208,7 @@ export default function Simulator() {
           {washers.map((item) => <option key={item.id} value={item.id}>{item.name} · {stateNames[item.state]}</option>)}
         </select>
         {washer && <div className="admin-card">
-          <span className={`tag ${washer.state === 'IDLE' || washer.state === 'FINISHED' ? 'done' : 'busy'}`}>{stateNames[washer.state]} ({washer.state})</span>
+          <span className={`tag ${washer.state === 'IDLE' || washer.state === 'FINISHED' ? 'done' : 'busy'}`}>{stateNames[washer.state]}</span>
           <div className="detail-list">
             {[
               ['사용자', currentUser?.nickname ?? '—'],
@@ -194,7 +222,6 @@ export default function Simulator() {
             ].map(([label, value]) => <div className="detail-row" key={label}><span>{label}</span><span>{value}</span></div>)}
           </div>
         </div>}
-        {!canReserve && washer && <p className="notice">{washer.name}는 현재 {stateNames[washer.state]} 상태입니다. 새 사용자를 등록하려면 사용 가능한 세탁기를 선택하세요.</p>}
       </section>
 
       <section className="section">
