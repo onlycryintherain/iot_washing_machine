@@ -59,7 +59,7 @@ Neon에서 PostgreSQL 프로젝트를 만들고 연결 문자열을 `DATABASE_UR
 2. HTTPS로 배포합니다. 로컬 개발의 localhost도 Service Worker 테스트에 사용할 수 있습니다.
 3. 앱 첫 실행 때 이름과 학번을 입력하고 **등록하고 시작하기**를 누르면 알림 권한을 요청하고, 허용한 경우 이 기기의 Push 구독을 저장합니다.
 4. iPhone/iPad는 Safari 공유 메뉴에서 **홈 화면에 추가**한 뒤 설치된 앱을 열어 등록해야 Push 권한을 요청할 수 있습니다.
-5. `/admin/simulator`에서 테스트 사용자를 만들고 시뮬레이션을 실행합니다. FINISHED 전이는 활성 세션의 사용자 구독만 대상으로 전송합니다.
+5. `/admin/simulator`에서 앱 알림이 연결된 사용자를 선택해 등록한 뒤 세탁 시작을 누릅니다. 약 12초 뒤 자동 종료되며 해당 사용자에게 완료 알림이 전송됩니다. 수거 완료 전까지 종료 후 2분이 지나면 수거 알림을 한 번 전송합니다. 새 테스트 사용자는 Push 구독이 없어 앱에서 알림을 허용하기 전까지 알림을 받을 수 없습니다.
 
 기기가 offline/expired subscription 응답(410)을 보내면 해당 구독은 제거됩니다. 배달 확인 여부는 Push 서비스 제공자와 OS 설정에 좌우됩니다.
 
@@ -67,7 +67,7 @@ Neon에서 PostgreSQL 프로젝트를 만들고 연결 문자열을 `DATABASE_UR
 
 Production: https://iotwashingmachine.vercel.app
 
-`vercel.json`은 Vercel Functions를 싱가포르(`sin1`)에서 실행하도록 설정합니다. Vercel 환경에는 `DATABASE_URL`, VAPID 변수, `DEVICE_API_SECRET`, `ADMIN_PASSWORD`가 필요합니다. 실제 도메인 HTTPS에서 PWA 설치 및 Push 구독을 확인합니다. 내부 reminder endpoint는 `POST /api/internal/process-reminders`이며 `DEVICE_API_SECRET` bearer 인증을 사용합니다. Vercel Cron/worker가 자동 실행된다고 가정하지 않습니다.
+`vercel.json`은 Vercel Functions를 싱가포르(`sin1`)에서 실행하도록 설정합니다. Vercel 환경에는 `DATABASE_URL`, VAPID 변수, `DEVICE_API_SECRET`, `ADMIN_PASSWORD`가 필요합니다. 실제 도메인 HTTPS에서 PWA 설치 및 Push 구독을 확인합니다. 내부 알림 처리 endpoint는 `POST /api/internal/process-reminders`이며 `DEVICE_API_SECRET` bearer 인증을 사용합니다. Neon `main` 브랜치의 `notify` Function과 `laundry-notifications-minute` Trigger가 매분 이 endpoint를 호출합니다. Function 환경변수의 `DEVICE_API_SECRET`도 Vercel과 일치해야 합니다. GitHub Actions의 5분 주기 작업은 보조 수단입니다. 예약 실행 시각과 실제 Push 도착 시각은 서비스 부하·기기 상태에 따라 조금 달라질 수 있습니다.
 
 ## PWA test checklist
 

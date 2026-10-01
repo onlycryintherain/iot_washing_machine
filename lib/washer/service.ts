@@ -64,9 +64,16 @@ export async function cancelReservation(washerId:string,userId:string){
 export async function processPickupReminders(now=new Date()){
  const db=getDb(), active=await db.select().from(sessions).where(and(eq(sessions.status,'FINISHED'),gte(sessions.finishedAt,new Date(now.getTime()-60*60_000))));let sent=0;
  for(const session of active){if(!session.finishedAt)continue;const minutes=(now.getTime()-session.finishedAt.getTime())/60000;const reminders=session.remindersSent??[];
-  const due=[10,20].filter(minute=>minutes>=minute&&!reminders.includes(minute));
-  const minute=due.at(-1);
-  if(minute){const [claim]=await db.insert(reminderLog).values({id:randomUUID(),sessionId:session.id,reminderMinutes:minute,sentAt:now}).onConflictDoNothing().returning({id:reminderLog.id});if(!claim)continue;try{const result=await sendUserPush(session.userId,{title:'세탁물을 확인해주세요',body:`세탁 완료 후 ${minute}분이 지났습니다.`,url:`/washer/${session.washerId}`,washerId:session.washerId,type:'PICKUP_REMINDER'});if(result.sent){await db.update(sessions).set({remindersSent:[...reminders,...due],updatedAt:now}).where(eq(sessions.id,session.id));reminders.push(...due);sent+=result.sent;}else await db.delete(reminderLog).where(eq(reminderLog.id,claim.id));}catch(e){await db.delete(reminderLog).where(eq(reminderLog.id,claim.id));console.error('Pickup reminder push failed',e instanceof Error?e.message:'Unknown error');}}
+  if(minutes<2||reminders.includes(2))continue;
+  const [claim]=await db.insert(reminderLog).values({id:randomUUID(),sessionId:session.id,reminderMinutes:2,sentAt:now}).onConflictDoNothing().returning({id:reminderLog.id});
+  if(!claim)continue;
+  try{
+    const [stillWaiting]=await db.select({id:sessions.id}).from(sessions).where(and(eq(sessions.id,session.id),eq(sessions.status,'FINISHED'))).limit(1);
+    if(!stillWaiting){await db.delete(reminderLog).where(eq(reminderLog.id,claim.id));continue;}
+    const result=await sendUserPush(session.userId,{title:'세탁물을 수거해주세요',body:'세탁 완료 후 2분이 지났습니다. 세탁물을 수거해주세요.',url:`/washer/${session.washerId}`,washerId:session.washerId,type:'PICKUP_REMINDER'});
+    if(result.sent){await db.update(sessions).set({remindersSent:[...reminders,2],updatedAt:now}).where(and(eq(sessions.id,session.id),eq(sessions.status,'FINISHED')));sent+=result.sent;}
+    else await db.delete(reminderLog).where(eq(reminderLog.id,claim.id));
+  }catch(e){await db.delete(reminderLog).where(eq(reminderLog.id,claim.id));console.error('Pickup reminder push failed',e instanceof Error?e.message:'Unknown error');}
  }
  return {processed:active.length,sent};
 }

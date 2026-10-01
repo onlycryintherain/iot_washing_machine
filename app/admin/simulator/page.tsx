@@ -3,8 +3,8 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Play, RotateCcw } from 'lucide-react';
-import { transition, type WasherEvent, type WasherState } from '@/lib/washer/state-machine';
+import { ArrowLeft, RotateCcw } from 'lucide-react';
+import type { WasherState } from '@/lib/washer/state-machine';
 
 type Washer = {
   id: string;
@@ -19,7 +19,7 @@ type Washer = {
   doorOpen: boolean;
   pushSentAt: string | null;
 };
-type User = { id: string; nickname: string; userCode: string };
+type User = { id: string; nickname: string; userCode: string; hasPush: boolean };
 type SimulatorData = { washers: Washer[]; users: User[] };
 
 const stateNames: Record<WasherState, string> = {
@@ -31,22 +31,6 @@ const stateNames: Record<WasherState, string> = {
   WAITING_FOR_PICKUP: '수거 대기',
 };
 
-const sensorEvents: Array<{ event: Exclude<WasherEvent, 'RESERVE'>; label: string }> = [
-  { event: 'START', label: '세탁 시작' },
-  { event: 'ACTIVITY', label: '진동 발생' },
-  { event: 'NO_ACTIVITY', label: '종료 후보' },
-  { event: 'RESUME', label: '다시 동작' },
-  { event: 'FINISH', label: '세탁 종료' },
-  { event: 'DOOR_OPEN', label: '문 열기' },
-  { event: 'PICKUP', label: '수거 완료' },
-  { event: 'RESET', label: '초기화' },
-];
-
-function canApply(state: WasherState, event: WasherEvent) {
-  if (state === 'IDLE' && event === 'RESET') return false;
-  try { transition(state, event); return true; } catch { return false; }
-}
-
 export default function Simulator() {
   const [password, setPassword] = useState('');
   const [ok, setOk] = useState(false);
@@ -55,10 +39,9 @@ export default function Simulator() {
   const [selected, setSelected] = useState('');
   const [user, setUser] = useState('');
   const [demoName, setDemoName] = useState('');
-  const [speed, setSpeed] = useState(10);
   const [busy, setBusy] = useState(false);
   const [demoRunning, setDemoRunning] = useState(false);
-  const [progress, setProgress] = useState('');
+  const [secondsLeft, setSecondsLeft] = useState(12);
   const [message, setMessage] = useState('');
   const [messageIsError, setMessageIsError] = useState(false);
 
@@ -151,33 +134,19 @@ export default function Simulator() {
   }
 
   async function demo() {
-    if (!user) { showMessage('데모에 사용할 사용자를 먼저 선택해주세요.', true); return; }
-    if (!selected) return;
+    if (!selected || washer?.state !== 'RESERVED') return;
     setDemoRunning(true);
-    setProgress('사용자를 등록하는 중…');
+    setSecondsLeft(12);
+    const started = Date.now();
+    const timer = setInterval(() => {
+      setSecondsLeft(Math.max(0, 12 - Math.floor((Date.now() - started) / 1000)));
+      void load(password);
+    }, 1000);
     try {
-      await request({ action: 'reserve', washerId: selected, userId: user });
-      const sequence: Array<[number, Exclude<WasherEvent, 'RESERVE'>, string]> = [
-        [5, 'START', '세탁 시작'],
-        [20, 'ACTIVITY', '진동 발생'],
-        [30, 'NO_ACTIVITY', '잠시 멈춤'],
-        [38, 'RESUME', '다시 동작'],
-        [55, 'NO_ACTIVITY', '잠시 멈춤'],
-        [65, 'RESUME', '다시 동작'],
-        [85, 'NO_ACTIVITY', '잠시 멈춤'],
-        [95, 'RESUME', '다시 동작'],
-        [120, 'FINISH', '세탁 완료'],
-      ];
-      let previousSecond = 0;
-      for (const [second, event, label] of sequence) {
-        await new Promise((resolve) => setTimeout(resolve, (second - previousSecond) * 1000 / speed));
-        previousSecond = second;
-        setProgress(`진행 중: ${label} (${second}/120초)`);
-        await request({ action: 'event', washerId: selected, event });
-      }
-      showMessage('데모가 끝났습니다. 완료 상태를 확인한 뒤 수거 완료 또는 초기화를 눌러주세요.');
+      await request({ action: 'simulate', washerId: selected });
+      showMessage('세탁이 완료되었습니다. 수거 완료 전까지 2분이 지나면 수거 알림이 전송됩니다.');
     } catch { /* request already shows the error */ }
-    finally { setDemoRunning(false); setProgress(''); }
+    finally { clearInterval(timer); setDemoRunning(false); }
   }
 
   function lock() {
@@ -192,13 +161,13 @@ export default function Simulator() {
 
   const washer = washers.find((item) => item.id === selected);
   const canReserve = washer?.state === 'IDLE';
-  const canRemind = washer?.state === 'FINISHED' || washer?.state === 'WAITING_FOR_PICKUP';
+  const canPickup = washer?.state === 'FINISHED' || washer?.state === 'WAITING_FOR_PICKUP';
   const currentUser = users.find((item) => item.id === washer?.currentUserId);
 
   return <main className="admin-shell">
     <div className="topline"><Link className="back" href="/admin"><ArrowLeft /></Link><span className="brand">운영 도구</span></div>
     <h1>세탁기 시뮬레이터</h1>
-    <p className="lead">세탁기 상태를 선택하고 센서 이벤트를 재현합니다.</p>
+    <p className="lead">사용자를 등록한 뒤 세탁을 시작하면 약 12초 후 자동으로 종료됩니다.</p>
 
     {!ok ? <section className="section">
       <label className="eyebrow" htmlFor="simulator-password">운영자 비밀번호</label>
@@ -233,33 +202,23 @@ export default function Simulator() {
         <p className="lead simulator-help">목록에서 선택하거나 아래에 이름을 입력해 테스트 사용자를 만드세요.</p>
         <select className="input" aria-label="시뮬레이터 사용자" value={user} onChange={(event) => setUser(event.target.value)} disabled={demoRunning}>
           <option value="">사용자를 선택하세요</option>
-          {users.map((item) => <option key={item.id} value={item.id}>{item.nickname} · {item.userCode}</option>)}
+          {users.map((item) => <option key={item.id} value={item.id}>{item.nickname} · {item.userCode}{item.hasPush ? ' · 알림 연결' : ''}</option>)}
         </select>
         <div className="simulator-user-create">
           <input className="input" aria-label="테스트 사용자 이름" placeholder="새 테스트 사용자 이름" value={demoName} maxLength={24} onChange={(event) => setDemoName(event.target.value)} disabled={busy || demoRunning} onKeyDown={(event) => { if (event.key === 'Enter') void makeUser(); }} />
           <button className="button small secondary" onClick={() => void makeUser()} disabled={busy || demoRunning}>테스트 사용자 만들기</button>
         </div>
         <button className="button" disabled={busy || demoRunning || !canReserve} aria-busy={busy} onClick={() => void reserve()}>사용자 등록</button>
-        {canReserve && !user && <p className="lead simulator-help">사용자 등록을 누르면 먼저 사용자를 선택하라는 안내가 표시됩니다.</p>}
+        {currentUser && !currentUser.hasPush && <p className="notice">이 사용자는 앱 알림이 연결되지 않아 완료·수거 알림을 받을 수 없습니다. 앱에서 알림을 허용한 사용자를 선택하세요.</p>}
       </section>
 
       <section className="section">
-        <h2>3. 센서 이벤트</h2>
-        <p className="lead simulator-help">현재 상태에서 실행할 수 있는 이벤트만 활성화됩니다.</p>
-        <div className="admin-actions">{sensorEvents.map(({ event, label }) =>
-          <button className="button small secondary" key={event} disabled={busy || demoRunning || !washer || !canApply(washer.state, event)} onClick={() => void runAction({ action: 'event', washerId: selected, event }, `${label} 이벤트를 적용했습니다.`)}>{label}</button>
-        )}</div>
-      </section>
-
-      <section className="section">
-        <div className="section-head"><h2>중간 정지 확인 데모</h2><Play size={17} /></div>
-        <p className="lead">세탁 중 잠시 멈췄다가 다시 움직이는 2분 흐름을 재생합니다. 완료 후에는 수거 완료 또는 초기화로 비울 수 있습니다.</p>
-        <div className="speed-row">{[1, 2, 5, 10].map((value) => <button className={`button small ${speed === value ? '' : 'secondary'}`} key={value} onClick={() => setSpeed(value)} disabled={busy || demoRunning}>{value}×</button>)}</div>
-        <button className="button" disabled={busy || demoRunning || !canReserve} aria-busy={demoRunning} onClick={() => void demo()}>{demoRunning ? '데모 실행 중…' : '2분 데모 실행'}</button>
-        {progress && <p className="notice" role="status">{progress}</p>}
+        <h2>3. 시뮬레이션 시작</h2>
+        <p className="lead simulator-help">세탁 시작 후 약 12초에 종료 알림이 전송됩니다. 수거하지 않으면 종료 2분 후 수거 알림이 전송됩니다.</p>
+        <button className="button" disabled={busy || demoRunning || washer?.state !== 'RESERVED'} aria-busy={demoRunning} onClick={() => void demo()}>{demoRunning ? `세탁 중 · 약 ${secondsLeft}초 남음` : '세탁 시작'}</button>
         <div className="admin-actions">
-          <button className="button small secondary" disabled={busy || demoRunning || !canRemind} onClick={() => void runAction({ action: 'reminder', washerId: selected, minutes: 10 }, '10분 경과 알림을 처리했습니다.')}>10분 경과 시뮬레이션</button>
-          <button className="button small secondary" disabled={busy || demoRunning || !canRemind} onClick={() => void runAction({ action: 'reminder', washerId: selected, minutes: 20 }, '20분 경과 알림을 처리했습니다.')}>20분 경과 시뮬레이션</button>
+          <button className="button small secondary" disabled={busy || demoRunning || !canPickup} onClick={() => void runAction({ action: 'event', washerId: selected, event: 'PICKUP' }, '수거를 완료해 세탁기를 비웠습니다.')}>수거 완료</button>
+          <button className="button small secondary" disabled={busy || demoRunning || !washer || washer.state === 'IDLE'} onClick={() => void runAction({ action: 'event', washerId: selected, event: 'RESET' }, '세탁기를 초기화했습니다.')}>초기화</button>
         </div>
       </section>
     </>}
