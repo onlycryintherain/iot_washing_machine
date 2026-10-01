@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { WasherQrCards } from '@/components/washer-qr-cards';
+import { BrandLogo } from '@/components/brand-logo';
 
 type Item = {
   id: string;
@@ -91,7 +92,7 @@ export default function Admin() {
   }
 
   return <main className="admin-shell">
-    <div className="topline"><span className="brand">기숙사 세탁실 · 운영</span>{loaded && <Link href="/admin/simulator" className="text-link">시뮬레이터 →</Link>}</div>
+    <div className="topline"><BrandLogo />{loaded && <Link href="/admin/simulator" className="text-link">시뮬레이터 →</Link>}</div>
     <h1>운영 현황</h1>
     <p className="lead">세탁기를 선택해 테스트를 시작하거나 QR 안내 카드를 관리하세요.</p>
 

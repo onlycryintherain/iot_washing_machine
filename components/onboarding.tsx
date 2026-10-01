@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
-import { WashingMachine } from 'lucide-react';
+import Image from 'next/image';
 import { getPushSubscription, pushSupported, savePushSubscription } from '@/lib/push/client';
 
 type Profile = { id: string; nickname: string; userCode: string; profileComplete: true };
@@ -105,7 +105,7 @@ export function Onboarding({ onComplete }: { onComplete: (notice?: string) => vo
 
   return <div className="onboarding-backdrop">
     <section className="onboarding-card" aria-labelledby="onboarding-title">
-      <div className="onboarding-icon"><WashingMachine size={24}/></div>
+      <div className="onboarding-icon"><Image src="/icons/brand-mark.png" alt="" width={40} height={40} unoptimized /></div>
       <p className="brand">기숙사 세탁실</p>
       <h1 id="onboarding-title">처음 한 번만 등록해주세요</h1>
       <p className="lead">이름과 학번을 등록하면 세탁기를 사용할 수 있어요.</p>

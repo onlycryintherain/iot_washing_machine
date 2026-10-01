@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { Home, ScanLine, WashingMachine } from 'lucide-react';
 import { Onboarding } from '@/components/onboarding';
 import { InstallGate, useInstallPrompt } from '@/components/install-prompt';
@@ -90,7 +91,10 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   }
 
   if (!admin && (!initialized || !installPrompt.ready)) {
-    return <div className="app-startup" aria-label="앱을 여는 중">기숙사 세탁실을 여는 중…</div>;
+    return <div className="app-startup" aria-label="앱을 여는 중">
+      <Image src="/icons/brand-mark.png" alt="" width={96} height={96} className="startup-logo" priority unoptimized />
+      <span>기숙사 세탁실을 여는 중…</span>
+    </div>;
   }
 
   if (!admin && installPrompt.platform !== 'other' && !installPrompt.standalone) {

@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Download, WashingMachine } from 'lucide-react';
+import { Download } from 'lucide-react';
+import Image from 'next/image';
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -78,7 +79,7 @@ export function useInstallPrompt() {
 export function InstallGate({ prompt }: { prompt: ReturnType<typeof useInstallPrompt> }) {
   return <div className="onboarding-backdrop">
     <section className="onboarding-card install-gate-card" aria-labelledby="install-gate-title">
-      <div className="onboarding-icon"><WashingMachine size={24} /></div>
+      <div className="onboarding-icon"><Image src="/icons/brand-mark.png" alt="" width={40} height={40} unoptimized /></div>
       <p className="brand">기숙사 세탁실</p>
       <h1 id="install-gate-title">앱 설치 후 이용하세요</h1>
       <p className="lead">설치가 끝나면 홈 화면의 ‘세탁실’ 아이콘을 눌러 앱을 열어주세요.</p>

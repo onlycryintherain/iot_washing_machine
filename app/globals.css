@@ -42,3 +42,10 @@
 .admin-washer-facts strong{color:var(--ink);font-weight:650}
 .admin-washer-open{display:block;text-align:center;text-decoration:none;font-size:14px;padding:12px 14px}
 .admin-live-label{display:block;margin-top:5px;color:var(--muted);font-size:12px}
+.brand-lockup{display:inline-flex;align-items:center;gap:8px;min-width:0}
+.brand-symbol{width:32px;height:32px;object-fit:contain;flex:none}
+.app-startup{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center}
+.startup-logo{width:96px;height:96px;object-fit:contain;animation:startup-pulse 1.6s ease-in-out infinite}
+.onboarding-icon{background:transparent}
+@keyframes startup-pulse{50%{opacity:.65;transform:scale(.96)}}
+@media(prefers-reduced-motion:reduce){.startup-logo{animation:none}}

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import jsQR from 'jsqr';
 import { Camera, CameraOff, ArrowLeft } from 'lucide-react';
+import { BrandLogo } from '@/components/brand-logo';
 
 export default function ScanPage() {
   const router = useRouter();
@@ -103,7 +104,7 @@ export default function ScanPage() {
   }
 
   return <>
-    <div className="topline"><Link className="back" href="/" aria-label="홈으로 돌아가기"><ArrowLeft size={20} /></Link><span className="brand">기숙사 세탁실</span></div>
+    <div className="topline"><Link className="back" href="/" aria-label="홈으로 돌아가기"><ArrowLeft size={20} /></Link><BrandLogo /></div>
     <h1>세탁기 QR 스캔</h1>
     <p className="lead">세탁기에 붙은 QR을 앱 카메라로 비추면 해당 세탁기로 이동합니다.</p>
     <div className="scan-preview">

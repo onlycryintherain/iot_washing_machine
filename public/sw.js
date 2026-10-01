@@ -1,4 +1,4 @@
-const CACHE = 'dorm-laundry-shell-v2';
+const CACHE = 'dorm-laundry-shell-v3';
 const NAV_CACHE = 'dorm-laundry-notification-navigation-v1';
 const NAV_REQUEST = new URL('/__laundry_notification_target__', self.location.origin).href;
 

@@ -5,13 +5,14 @@ import { BellRing } from 'lucide-react';
 import { useWasherOverview } from '@/components/use-washer-overview';
 import { WasherRow } from '@/components/washer-row';
 import { WasherTiming } from '@/components/washer-timing';
+import { BrandLogo } from '@/components/brand-logo';
 
 export default function Home() {
   const { washers, myWasher, loaded, error } = useWasherOverview();
   const available = washers.filter((washer) => washer.state === 'IDLE').length;
 
   return <>
-    <div className="topline"><span className="brand">기숙사 세탁실</span><span className="eyebrow">Laundry room</span></div>
+    <div className="topline"><BrandLogo /><span className="eyebrow">Laundry room</span></div>
     <h1>세탁실 현황</h1>
     <p className="lead">사용 가능한 세탁기를 확인하고, 완료되면 알림을 받으세요.</p>
 
