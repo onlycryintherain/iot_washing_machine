@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, type FormEvent } from 'react';
-import { BellRing, WashingMachine } from 'lucide-react';
+import { WashingMachine } from 'lucide-react';
 
 type Profile = { id: string; nickname: string; userCode: string; profileComplete: true };
 
@@ -135,8 +135,7 @@ export function Onboarding({ onComplete }: { onComplete: (notice?: string) => vo
       <div className="onboarding-icon"><WashingMachine size={24}/></div>
       <p className="brand">기숙사 세탁실</p>
       <h1 id="onboarding-title">처음 한 번만 등록해주세요</h1>
-      <p className="lead">이름과 학번을 입력하면 세탁기를 바로 사용할 수 있어요.</p>
-      <div className="onboarding-push-note"><BellRing size={18}/><span>등록을 마치면 세탁 완료 알림 허용창이 이어서 열립니다.</span></div>
+      <p className="lead">이름과 학번을 등록하면 세탁기를 사용할 수 있어요.</p>
       <form onSubmit={submit}>
         <label className="eyebrow" htmlFor="student-name">이름</label>
         <input className="input" id="student-name" autoComplete="name" maxLength={60} value={name} onChange={(event) => setName(event.target.value)} placeholder="실명을 입력하세요" required />
@@ -145,6 +144,7 @@ export function Onboarding({ onComplete }: { onComplete: (notice?: string) => vo
         <p className="onboarding-privacy">학번은 이용자 확인을 위해 저장되며, 세탁기 화면에 표시하지 않습니다.</p>
         {error && <p className="error" role="alert">{error}</p>}
         <button className="button" type="submit" disabled={busy || !name.trim() || !studentId.trim()}>{busy ? '등록 중…' : '등록하고 시작하기'}</button>
+        <p className="onboarding-permission-note">등록할 때 세탁 완료 알림 허용창이 열립니다.</p>
       </form>
     </section>
   </div>;

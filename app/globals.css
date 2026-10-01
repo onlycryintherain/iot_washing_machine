@@ -79,3 +79,36 @@ body:has(.student-app),body:has(.onboarding-backdrop){background:#f2f4f6}
 .onboarding-backdrop .install-gate-instructions strong{color:#1b64da}
 @media(min-width:700px){.app-main.student-app{padding-top:0}}
 @media(prefers-reduced-motion:reduce){.student-app .washer-row{transition:none}}
+
+/* One-entry mobile layout. Status colors are shared by home, list and detail. */
+.app-main.student-app{padding-bottom:calc(28px + env(safe-area-inset-bottom))}
+.student-app .home-availability{margin-top:8px}
+.student-app .home-availability .eyebrow{display:block;margin:0 0 7px;color:#6b7683;font-size:13px;font-weight:600}
+.student-app .home-availability h1{margin:0;font-size:29px;line-height:1.32}
+.student-app .home-availability h1 strong{font-size:40px;font-weight:750;white-space:nowrap}
+.student-app .home-scan-button{margin-top:21px}
+.student-app .home-action-hint{margin:9px 0 0;color:#6b7683;font-size:12px;line-height:1.5}
+.student-app .home-washers{margin-top:28px}
+.student-app .washer-row{gap:10px}
+.student-app .washer-row-main{min-width:0}
+.student-app .washer-name,.student-app .washer-meta{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.student-app .washer-row-end{display:flex;flex:none;align-items:center;gap:9px;color:#8b95a1}
+.student-app .washer-row-end svg{flex:none}
+.student-app .washer-status{display:inline-flex;align-items:center;gap:6px;max-width:100%;padding:6px 9px;border-radius:12px;font-size:12px;font-weight:700;line-height:1.2;white-space:nowrap}
+.student-app .washer-status-dot{display:block;flex:none;width:7px;height:7px;border-radius:50%;background:currentColor}
+.student-app .washer-status.available,.student-app .washer-status.finished{background:#e8f7f2;color:#00866d}
+.student-app .washer-status.reserved,.student-app .washer-status.running{background:#e8f3ff;color:#1b64da}
+.student-app .washer-status.checking,.student-app .washer-status.pickup{background:#fff3dd;color:#a56a0a}
+.student-app .my-wash-card{display:block;margin:3px 0 25px;padding:16px;border:1px solid #e5e8eb;border-radius:12px;background:#fff;box-shadow:0 6px 20px #191f280a;color:#191f28;text-decoration:none}
+.student-app .my-wash-kicker{display:block;margin-bottom:9px;color:#6b7683;font-size:12px;font-weight:700}
+.student-app .my-wash-content{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.student-app .my-wash-content strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:18px}
+.student-app .my-wash-link{display:inline-flex;align-items:center;gap:2px;margin-top:13px;color:#1b64da;font-size:13px;font-weight:700}
+.student-app .my-wash-card:focus-visible{outline:3px solid #8bc0ff;outline-offset:3px}
+.student-app .status-panel{margin-top:20px}
+.student-app .status-panel .status-big{margin:13px 0 5px}
+.student-app .action-hint{margin:0 0 2px;color:#4e5968;font-size:13px;line-height:1.5}
+.student-app .action-stack{gap:8px;margin-top:18px}
+.student-app .back{display:inline-flex;align-items:center;justify-content:center;min-width:32px;min-height:32px;margin:-4px}
+.onboarding-backdrop .onboarding-permission-note{margin:10px 0 0;color:#6b7683;font-size:12px;line-height:1.5;text-align:center}
+@media(max-width:390px){.student-app .washer-row{padding:13px 12px}.student-app .washer-row-end{gap:5px}.student-app .washer-status{padding:6px 7px;font-size:11px}}

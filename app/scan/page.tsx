@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import jsQR from 'jsqr';
-import { Camera, CameraOff, ArrowRight } from 'lucide-react';
+import { Camera, CameraOff, ArrowLeft, ArrowRight } from 'lucide-react';
 
 export default function ScanPage() {
   const router = useRouter();
@@ -103,7 +103,7 @@ export default function ScanPage() {
   }
 
   return <>
-    <div className="topline"><span className="brand">기숙사 세탁실</span></div>
+    <div className="topline"><Link className="back" href="/" aria-label="홈으로 돌아가기"><ArrowLeft size={20} /></Link><span className="brand">기숙사 세탁실</span></div>
     <h1>세탁기 QR 스캔</h1>
     <p className="lead">세탁기에 붙은 QR을 앱 카메라로 비추면 해당 세탁기로 이동합니다.</p>
     <div className="scan-preview">
@@ -116,6 +116,6 @@ export default function ScanPage() {
     <button className="button scan-action" type="button" disabled={busy} onClick={active ? stopCamera : startCamera}>
       {active ? <CameraOff size={19} /> : <Camera size={19} />}{busy ? '카메라 여는 중…' : active ? '스캔 중지' : 'QR 스캔 시작'}
     </button>
-    <Link className="washer-row scan-manual-link" href="/washers"><span className="washer-name">세탁기 직접 선택하기</span><ArrowRight size={19} /></Link>
+    <Link className="washer-row scan-manual-link" href="/#washers"><span className="washer-name">목록에서 세탁기 선택하기</span><ArrowRight size={19} /></Link>
   </>;
 }

@@ -1,80 +1,40 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { ArrowRight, BellRing, ScanLine } from 'lucide-react';
-
-type Washer = { id: string; name: string; state: string; startedAt: string | null; currentUserId: string | null };
-
-function label(state: string) {
-  if (state === 'IDLE') return '사용 가능';
-  if (state === 'RESERVED') return '등록됨';
-  if (state === 'FINISHED' || state === 'WAITING_FOR_PICKUP') return '세탁 완료';
-  return '세탁 중';
-}
+import { ArrowRight, ScanLine } from 'lucide-react';
+import { useWasherOverview } from '@/components/use-washer-overview';
+import { WasherRow } from '@/components/washer-row';
+import { WasherStatus } from '@/components/washer-status';
 
 export default function Home() {
-  const [list, setList] = useState<Washer[]>([]);
-  const [mine, setMine] = useState<Washer | null>(null);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    let live = true;
-    const load = () => {
-      if (document.hidden) return;
-      fetch('/api/washers', {
-        headers: { authorization: `Bearer ${localStorage.getItem('laundry-token') ?? ''}` },
-        cache: 'no-store',
-      }).then((response) => {
-        if (!response.ok) throw Error();
-        return response.json();
-      }).then((data) => {
-        if (live) {
-          setList(data.washers);
-          setMine(data.myWasher);
-          setError('');
-        }
-      }).catch(() => {
-        if (live) setError('세탁기 상태를 불러오지 못했습니다.');
-      });
-    };
-    load();
-    const id = setInterval(load, 5000);
-    return () => { live = false; clearInterval(id); };
-  }, []);
-
-  const available = list.filter((washer) => washer.state === 'IDLE').length;
+  const { washers, myWasher, loaded, error } = useWasherOverview();
+  const available = washers.filter((washer) => washer.state === 'IDLE').length;
 
   return <>
-    <div className="topline"><span className="brand">기숙사 세탁실</span><span className="eyebrow">Laundry room</span></div>
-    <h1>세탁실 현황</h1>
-    <p className="lead">사용 가능한 세탁기를 확인하고, 완료되면 알림을 받으세요.</p>
-    <Link className="button home-scan-button" href="/scan"><ScanLine size={19} /> 세탁기 QR 스캔</Link>
+    <div className="topline"><span className="brand">기숙사 세탁실</span></div>
 
-    {mine && <section className="section">
-      <div className="section-head"><h2>내 세탁</h2><BellRing size={17} color="var(--green)" /></div>
-      <Link className="washer-row" href={`/washer/${mine.id}`}>
-        <span className="washer-row-main"><span className="washer-name">{mine.name}</span><span className="statusline"><i className="dot busy" />{label(mine.state)}</span></span>
-        <ArrowRight size={19} color="#79817a" />
-      </Link>
-    </section>}
+    {myWasher && <Link className="my-wash-card" href={`/washer/${myWasher.id}`}>
+      <span className="my-wash-kicker">내 세탁</span>
+      <span className="my-wash-content"><strong>{myWasher.name}</strong><WasherStatus state={myWasher.state} /></span>
+      <span className="my-wash-link">상태 확인하기 <ArrowRight size={16} aria-hidden="true" /></span>
+    </Link>}
 
-    <div className="summary">
-      <div className="summary-item"><span className="summary-label">사용 가능</span><strong className="summary-value">{available}</strong></div>
-      <div className="summary-item"><span className="summary-label">사용 중</span><strong className="summary-value">{list.length - available}</strong></div>
-    </div>
-
-    <section className="section">
-      <div className="section-head"><h2>세탁기</h2><Link href="/washers">전체 보기</Link></div>
-      {error ? <div className="notice">{error}<button className="text-link" onClick={() => location.reload()}> 다시 시도</button></div> : list.map((washer) =>
-        <Link className="washer-row" href={`/washer/${washer.id}`} key={washer.id}>
-          <span className="washer-row-main"><span className="washer-name">{washer.name}</span><span className="statusline"><i className={`dot ${washer.state === 'IDLE' || washer.state === 'FINISHED' || washer.state === 'WAITING_FOR_PICKUP' ? 'done' : 'busy'}`} />{label(washer.state)}</span></span>
-          <ArrowRight size={19} color="#79817a" />
-        </Link>
-      )}
-      {!error && !list.length && <p className="notice">세탁기 정보를 준비하고 있습니다.</p>}
+    <section className="home-availability" aria-live="polite">
+      <p className="eyebrow">세탁실 현황</p>
+      {loaded && (!error || washers.length > 0)
+        ? <h1>지금 사용 가능한<br />세탁기 <strong>{available}대</strong></h1>
+        : <h1>{loaded ? '세탁실 현황을 불러오지 못했어요' : '세탁실 현황을 확인하고 있어요'}</h1>}
     </section>
 
-    <div className="notice use-guide"><strong>이용 방법</strong><span>앱에서 QR을 스캔하거나 세탁기를 선택하세요.</span><span>사용 등록 후 세탁이 끝나면 알림으로 알려드려요.</span></div>
+    <Link className="button home-scan-button" href="/scan"><ScanLine size={19} aria-hidden="true" />QR 스캔하기</Link>
+    <p className="home-action-hint">세탁기 앞 QR을 스캔하면 해당 기기 화면으로 이동해요.</p>
+
+    <section className="section home-washers" id="washers">
+      <div className="section-head"><h2>세탁기 상태</h2>{loaded && <span className="eyebrow">전체 {washers.length}대</span>}</div>
+      {error && <p className="notice" role="status">{error} <button className="text-link" type="button" onClick={() => location.reload()}>다시 시도</button></p>}
+      {washers.map((washer) => <WasherRow key={washer.id} washer={washer} />)}
+      {!loaded && <p className="muted" role="status">세탁기 상태를 불러오는 중…</p>}
+      {loaded && !error && washers.length === 0 && <p className="muted">등록된 세탁기가 없습니다.</p>}
+    </section>
   </>;
 }

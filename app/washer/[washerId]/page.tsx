@@ -1,19 +1,152 @@
 'use client';
-/* eslint-disable react-hooks/set-state-in-effect */
+
 import { use, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-type Washer={id:string;name:string;location:string;state:string;currentUserId:string|null;reservedAt:string|null;startedAt:string|null;finishedAt:string|null;lastActivityAt:string|null};
-type LocalUser={id:string;nickname:string;userCode:string};
-const stateLabel=(state:string)=>({IDLE:'사용 가능',RESERVED:'등록 완료',RUNNING:'세탁 중',MAYBE_FINISHED:'상태 확인 중',FINISHED:'세탁 완료',WAITING_FOR_PICKUP:'수거 대기'})[state]??'상태 확인 중';
-export default function WasherPage({params}:{params:Promise<{washerId:string}>}) {
- const {washerId}=use(params);const [washer,setWasher]=useState<Washer|null>(null);const [nickname,setNickname]=useState('');const [hasIdentity,setHasIdentity]=useState(false);const [user,setUser]=useState<LocalUser|null>(null);const [busy,setBusy]=useState(false);const [error,setError]=useState('');const [offline,setOffline]=useState(false);
- useEffect(()=>{const syncIdentity=()=>{try{const token=localStorage.getItem('laundry-token'),saved=localStorage.getItem('laundry-user');setHasIdentity(!!token);if(saved)setUser(JSON.parse(saved));else setUser(null);}catch{setHasIdentity(false);setUser(null);}};syncIdentity();window.addEventListener('laundry-profile-updated',syncIdentity);return()=>window.removeEventListener('laundry-profile-updated',syncIdentity);},[]);
- useEffect(()=>{let active=true;const load=()=>{setOffline(!navigator.onLine);if(!navigator.onLine||document.hidden)return;fetch('/api/washers',{headers:{authorization:`Bearer ${localStorage.getItem('laundry-token')??''}`},cache:'no-store'}).then(r=>r.json()).then(data=>{if(active)setWasher(data.washers.find((item:Washer)=>item.id===washerId)??null);}).catch(()=>active&&setError('세탁기 상태를 불러오지 못했습니다.'));};load();const interval=setInterval(load,4000);return()=>{active=false;clearInterval(interval);};},[washerId]);
- async function mutate(url:string){setBusy(true);setError('');try{const response=await fetch(url,{method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${localStorage.getItem('laundry-token')??''}`},body:JSON.stringify({washerId,...(!hasIdentity?{nickname:nickname.trim()}: {})})});const data=await response.json();if(!response.ok){if(response.status===401&&hasIdentity){localStorage.removeItem('laundry-token');localStorage.removeItem('laundry-user');setHasIdentity(false);setUser(null);setNickname('');throw Error('사용자 정보가 만료되었습니다. 닉네임을 입력한 뒤 다시 등록해주세요.');}throw Error(data.error||'요청을 처리하지 못했습니다.');}if(data.token){localStorage.setItem('laundry-token',data.token);localStorage.setItem('laundry-user',JSON.stringify(data.user));setHasIdentity(true);setUser(data.user);}setWasher(data.washer);}catch(e){setError(e instanceof Error?e.message:'요청을 처리하지 못했습니다.');}finally{setBusy(false);}}
- if(!washer)return <><div className="topline"><Link className="back" href="/"><ArrowLeft/></Link></div>{error?<p className="notice">{error} <button className="text-link" onClick={()=>location.reload()}>다시 시도</button></p>:<p className="muted">세탁기 상태를 불러오는 중…</p>}</>;
- const own=!!washer.currentUserId&&user?.id===washer.currentUserId;const finished=washer.state==='FINISHED'||washer.state==='WAITING_FOR_PICKUP';const occupied=washer.state!=='IDLE';
- return <><div className="topline"><Link className="back" href="/"><ArrowLeft size={20}/></Link><span className="eyebrow">{washer.location}</span></div><h1>{washer.name}</h1><div className="status-panel"><span className={`tag ${finished?'done':occupied?'busy':''}`}><i className={`dot ${finished?'done':occupied?'busy':''}`}/>{stateLabel(washer.state)}</span><div className="status-big">{washer.state==='IDLE'?'현재 비어 있어요':finished?'세탁물을 가져가 주세요':washer.state==='RESERVED'?'세탁 시작을 기다리고 있어요':'세탁이 진행 중이에요'}</div><p className="lead">{washer.state==='MAYBE_FINISHED'?'세탁 상태를 확인하고 있어요.':finished&&washer.finishedAt?`${new Date(washer.finishedAt).toLocaleTimeString('ko-KR',{hour:'numeric',minute:'2-digit'})} 완료`:washer.startedAt?`${new Date(washer.startedAt).toLocaleTimeString('ko-KR',{hour:'numeric',minute:'2-digit'})} 시작`:washer.state==='IDLE'?'사용하려면 먼저 등록해주세요.':''}</p></div>
- {offline&&<p className="notice">오프라인 · 최근 상태를 표시하고 있습니다.</p>}{washer.state==='IDLE'&&<div className="notice use-guide"><strong>세탁기 사용은 간단해요</strong><span>1. 닉네임을 입력하세요.</span><span>2. ‘이 세탁기 사용하기’를 눌러 등록하세요.</span><span>3. 세탁이 끝나면 알림을 받고 수거를 완료하세요.</span></div>}<div className="detail-list"><div className="detail-row"><span>세탁 상태</span><span>{stateLabel(washer.state)}</span></div><div className="detail-row"><span>최근 활동</span><span>{washer.lastActivityAt?new Date(washer.lastActivityAt).toLocaleTimeString('ko-KR',{hour:'numeric',minute:'2-digit'}):'—'}</span></div></div>
- {error&&<p className="error">{error}</p>}{!offline&&<div className="action-stack">{washer.state==='IDLE'&&<>{!hasIdentity&&<><label className="eyebrow" htmlFor="nickname">닉네임을 입력해주세요.</label><input className="input" id="nickname" value={nickname} onChange={event=>setNickname(event.target.value)} placeholder="예: 민지" maxLength={24} autoComplete="nickname"/></>}<button className="button" disabled={busy||(!hasIdentity&&!nickname.trim())} onClick={()=>mutate(`/api/washers/${washerId}/reserve`)}>{busy?'등록 중…':'이 세탁기 사용하기'}</button></>}{own&&finished&&<button className="button" disabled={busy} onClick={()=>mutate(`/api/washers/${washerId}/pickup`)}>수거했어요</button>}{own&&washer.state==='RESERVED'&&<button className="button secondary" disabled={busy} onClick={()=>mutate(`/api/washers/${washerId}/cancel`)}>등록 취소</button>}</div>}</>;
+import type { WasherSummary } from '@/lib/washer/presentation';
+import { washerPresentation } from '@/lib/washer/presentation';
+import { WasherStatus } from '@/components/washer-status';
+
+type Washer = WasherSummary & {
+  reservedAt: string | null;
+  lastActivityAt: string | null;
+};
+
+function timeLabel(value: string | null) {
+  return value ? new Date(value).toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' }) : '';
+}
+
+export default function WasherPage({ params }: { params: Promise<{ washerId: string }> }) {
+  const { washerId } = use(params);
+  const [washer, setWasher] = useState<Washer | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState('');
+  const [actionError, setActionError] = useState('');
+  const [offline, setOffline] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    const syncIdentity = () => {
+      try {
+        const saved = JSON.parse(localStorage.getItem('laundry-user') ?? 'null');
+        setUserId(saved?.id ?? null);
+      } catch {
+        setUserId(null);
+      }
+    };
+    syncIdentity();
+    window.addEventListener('laundry-profile-updated', syncIdentity);
+    return () => window.removeEventListener('laundry-profile-updated', syncIdentity);
+  }, []);
+
+  useEffect(() => {
+    let live = true;
+    const load = () => {
+      if (document.hidden) return;
+      if (!navigator.onLine) {
+        if (live) { setOffline(true); setLoaded(true); }
+        return;
+      }
+      setOffline(false);
+      fetch('/api/washers', {
+        headers: { authorization: `Bearer ${localStorage.getItem('laundry-token') ?? ''}` },
+        cache: 'no-store',
+      }).then((response) => {
+        if (!response.ok) throw new Error('세탁기 상태를 불러오지 못했습니다.');
+        return response.json();
+      }).then((data) => {
+        if (!live) return;
+        const current = (data.washers as Washer[]).find((item) => item.id === washerId) ?? null;
+        setWasher(current);
+        setLoadError(current ? '' : '세탁기를 찾을 수 없습니다.');
+        setLoaded(true);
+      }).catch(() => {
+        if (!live) return;
+        setLoadError('세탁기 상태를 불러오지 못했습니다.');
+        setLoaded(true);
+      });
+    };
+    load();
+    const interval = setInterval(load, 4000);
+    document.addEventListener('visibilitychange', load);
+    return () => {
+      live = false;
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', load);
+    };
+  }, [washerId]);
+
+  async function mutate(action: 'reserve' | 'cancel' | 'pickup') {
+    setBusy(true);
+    setActionError('');
+    try {
+      const response = await fetch(`/api/washers/${washerId}/${action}`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', authorization: `Bearer ${localStorage.getItem('laundry-token') ?? ''}` },
+        body: '{}',
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.removeItem('laundry-token');
+          localStorage.removeItem('laundry-user');
+          window.dispatchEvent(new Event('laundry-profile-updated'));
+        }
+        throw new Error(typeof data.error === 'string' ? data.error : '요청을 처리하지 못했습니다.');
+      }
+      setWasher(data.washer);
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : '요청을 처리하지 못했습니다.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const own = !!washer?.currentUserId && washer.currentUserId === userId;
+  const finished = washer?.state === 'FINISHED' || washer?.state === 'WAITING_FOR_PICKUP';
+  const status = washer ? washerPresentation(washer.state) : null;
+  const headline = washer?.state === 'RESERVED' && !own
+    ? '다른 사용자가 시작을 기다리고 있어요'
+    : washer?.state === 'WAITING_FOR_PICKUP' && !own
+      ? '세탁물 수거를 기다리고 있어요'
+      : status?.headline;
+  const time = washer?.finishedAt && finished ? `${timeLabel(washer.finishedAt)} 완료`
+    : washer?.startedAt ? `${timeLabel(washer.startedAt)} 시작` : '';
+
+  return <>
+    <div className="topline"><Link className="back" href="/" aria-label="홈으로 돌아가기"><ArrowLeft size={20} /></Link><span className="brand">기숙사 세탁실</span></div>
+    {!washer ? <>
+      <h1>{loaded && loadError === '세탁기를 찾을 수 없습니다.' ? '세탁기를 찾을 수 없어요' : '세탁기 상태'}</h1>
+      <p className="muted" role="status">{loadError || (offline ? '인터넷 연결을 확인해주세요.' : '세탁기 상태를 불러오는 중…')}</p>
+      {loadError && <button className="button secondary" type="button" onClick={() => location.reload()}>다시 시도</button>}
+    </> : <>
+      <h1>{washer.name}</h1>
+      <p className="lead">{washer.location}</p>
+      <section className="status-panel" aria-label="현재 세탁기 상태">
+        <WasherStatus state={washer.state} />
+        <h2 className="status-big">{headline}</h2>
+        {time && <p className="lead">{time}</p>}
+      </section>
+
+      {offline && <p className="notice" role="status">오프라인 상태입니다. 마지막으로 확인한 상태를 보여드려요.</p>}
+      {loadError && !offline && <p className="notice" role="status">{loadError} 마지막으로 확인한 상태를 보여드려요.</p>}
+      {actionError && <p className="error" role="alert">{actionError}</p>}
+
+      {!offline && <div className="action-stack">
+        {washer.state === 'IDLE' && <>
+          <p className="action-hint">사용을 등록한 뒤 세탁기의 시작 버튼을 눌러주세요.</p>
+          <button className="button" type="button" disabled={busy} onClick={() => mutate('reserve')}>{busy ? '등록 중…' : '이 세탁기 사용 등록'}</button>
+        </>}
+        {own && washer.state === 'RESERVED' && <>
+          <p className="action-hint">세탁기의 시작 버튼을 누르면 상태가 자동으로 바뀝니다.</p>
+          <button className="button secondary" type="button" disabled={busy} onClick={() => mutate('cancel')}>{busy ? '취소 중…' : '사용 등록 취소'}</button>
+        </>}
+        {own && finished && <>
+          <p className="action-hint">세탁물을 꺼냈다면 수거 완료를 눌러주세요.</p>
+          <button className="button" type="button" disabled={busy} onClick={() => mutate('pickup')}>{busy ? '처리 중…' : '수거 완료'}</button>
+        </>}
+      </div>}
+    </>}
+  </>;
 }
