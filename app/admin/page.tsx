@@ -16,7 +16,7 @@ type Item = {
   pushSentAt: string | null;
   elapsedMinutes: number | null;
 };
-type Person = { id: string; nickname: string };
+type Person = { id: string; nickname: string; studentId: string | null; userCode: string; createdAt: string; hasPush: boolean; pushDevices: number };
 const stateLabel: Record<string, string> = {
   IDLE: '사용 가능', RESERVED: '시작 대기', RUNNING: '세탁 중', MAYBE_FINISHED: '종료 확인 중',
   FINISHED: '세탁 완료', WAITING_FOR_PICKUP: '수거 대기',
@@ -35,6 +35,14 @@ export default function Admin() {
   const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
   const [showQr, setShowQr] = useState(false);
+  const [search, setSearch] = useState('');
+  const [userFilter, setUserFilter] = useState<'all' | 'connected' | 'disconnected'>('all');
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [draftName, setDraftName] = useState('');
+  const [draftStudentId, setDraftStudentId] = useState('');
+  const [savingUser, setSavingUser] = useState(false);
+  const [userMessage, setUserMessage] = useState('');
+  const [userError, setUserError] = useState('');
   const refreshId = useRef(0);
   const backgroundLoading = useRef(false);
 
@@ -89,14 +97,54 @@ export default function Admin() {
     setQrWashers([]);
     setPeople([]);
     setLoaded(false);
+    setEditingUserId(null);
+    setUserMessage('');
+    setUserError('');
   }
 
-  return <main className="admin-shell">
-    <div className="topline"><BrandLogo />{loaded && <Link href="/admin/simulator" className="text-link">시뮬레이터 →</Link>}</div>
-    <h1>운영 현황</h1>
-    <p className="lead">세탁기를 선택해 테스트를 시작하거나 QR 안내 카드를 관리하세요.</p>
+  function editUser(person: Person) {
+    setEditingUserId(person.id);
+    setDraftName(person.nickname);
+    setDraftStudentId(person.studentId ?? '');
+    setUserMessage('');
+    setUserError('');
+  }
 
-    {!loaded && <section className="section">
+  async function saveUser() {
+    if (!editingUserId || !draftName.trim() || savingUser) return;
+    setSavingUser(true);
+    setUserError('');
+    try {
+      const response = await fetch(`/api/admin/users/${encodeURIComponent(editingUserId)}`, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json', 'x-admin-password': password },
+        body: JSON.stringify({ nickname: draftName.trim(), studentId: draftStudentId.trim() }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || '사용자 정보를 저장하지 못했습니다.');
+      setPeople((current) => current.map((person) => person.id === editingUserId ? { ...person, ...data.user } : person));
+      setEditingUserId(null);
+      setUserMessage('사용자 정보를 저장했습니다.');
+      void load(password, true);
+    } catch (cause) {
+      setUserError(cause instanceof Error ? cause.message : '사용자 정보를 저장하지 못했습니다.');
+    } finally { setSavingUser(false); }
+  }
+
+  const availableCount = items.filter((washer) => washer.state === 'IDLE').length;
+  const connectedCount = people.filter((person) => person.hasPush).length;
+  const query = search.trim().toLocaleLowerCase('ko-KR');
+  const visiblePeople = people.filter((person) => {
+    if (userFilter === 'connected' && !person.hasPush) return false;
+    if (userFilter === 'disconnected' && person.hasPush) return false;
+    return !query || [person.nickname, person.studentId ?? '', person.userCode].some((value) => value.toLocaleLowerCase('ko-KR').includes(query));
+  });
+
+  return <div className="admin-shell">
+    <div className="admin-topbar"><BrandLogo />{loaded && <div className="admin-topbar-actions"><Link href="/admin/simulator" className="button small secondary">시뮬레이터 열기</Link><button className="button small secondary" type="button" onClick={lock}>잠금</button></div>}</div>
+    <div className="admin-page-heading"><div><p className="eyebrow">OPERATIONS</p><h1>운영 패널</h1><p className="lead">세탁기 상태와 사용자 등록 현황을 확인하고 관리하세요.</p></div></div>
+
+    {!loaded && <section className="section admin-login">
       <label className="eyebrow" htmlFor="admin-password">운영자 비밀번호</label>
       <input className="input" id="admin-password" type="password" placeholder="운영자 비밀번호" value={password} onChange={(event) => setPassword(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void load(password); }} />
       <button className="button" disabled={!password || busy} aria-busy={busy} onClick={() => void load(password)}>{busy ? '불러오는 중…' : '운영 도구 열기'}</button>
@@ -104,6 +152,12 @@ export default function Admin() {
     {error && <p className="error">{error}</p>}
 
     {loaded && <>
+      <div className="admin-overview" aria-label="운영 요약">
+        <div className="admin-overview-item"><span>사용 가능</span><strong>{availableCount}<small> / {items.length}대</small></strong></div>
+        <div className="admin-overview-item"><span>사용 중 · 수거 대기</span><strong>{items.length - availableCount}<small>대</small></strong></div>
+        <div className="admin-overview-item"><span>등록 사용자</span><strong>{people.length}<small>명</small></strong></div>
+        <div className="admin-overview-item"><span>알림 연결</span><strong>{connectedCount}<small>명</small></strong></div>
+      </div>
       <div className="section-head admin-status-heading"><div><h2>세탁기 상태</h2><span className="admin-live-label">화면이 열려 있는 동안 자동 갱신</span></div><button className="button small secondary" disabled={busy} onClick={() => void load(password)}>{busy ? '갱신 중…' : '새로고침'}</button></div>
       <div className="admin-grid">{items.map((washer) => {
         const person = people.find((item) => item.id === washer.currentUserId);
@@ -118,8 +172,32 @@ export default function Admin() {
           <Link className="button admin-washer-open" href={`/admin/simulator?washer=${encodeURIComponent(washer.id)}`}>{washer.state === 'IDLE' ? '테스트 시작하기' : '상태 보기 · 처리하기'}</Link>
         </article>;
       })}</div>
-      <section className="section"><button className="button secondary" type="button" onClick={() => setShowQr((current) => !current)} aria-expanded={showQr}>{showQr ? 'QR 코드 닫기' : 'QR 코드 관리'}</button>{showQr && <WasherQrCards washers={qrWashers} />}</section>
-      <div className="admin-bottom"><button className="text-link" onClick={lock}>잠금</button></div>
+      <section className="section admin-users-section" aria-labelledby="admin-users-title">
+        <div className="admin-users-heading"><div><h2 id="admin-users-title">사용자 관리</h2><p className="lead">이름·학번을 검색하고 등록 정보를 수정하세요.</p></div><span className="admin-count">{visiblePeople.length}명 표시</span></div>
+        <div className="admin-user-toolbar">
+          <input className="input" type="search" aria-label="사용자 검색" placeholder="이름, 학번, 사용자 코드 검색" value={search} onChange={(event) => setSearch(event.target.value)} />
+          <select className="input" aria-label="알림 연결 필터" value={userFilter} onChange={(event) => setUserFilter(event.target.value as typeof userFilter)}><option value="all">전체 사용자</option><option value="connected">알림 연결</option><option value="disconnected">알림 미연결</option></select>
+        </div>
+        {userMessage && <p className="notice" role="status">{userMessage}</p>}
+        {userError && <p className="error" role="alert">{userError}</p>}
+        <div className="admin-table-scroll"><table className="admin-table admin-users-table"><thead><tr><th>사용자</th><th>학번</th><th>코드</th><th>현재 세탁기</th><th>알림</th><th>등록일</th><th>관리</th></tr></thead><tbody>
+          {visiblePeople.map((person) => {
+            const activeWasher = items.find((washer) => washer.currentUserId === person.id);
+            const editing = editingUserId === person.id;
+            return <tr key={person.id}>
+              <td>{editing ? <input className="input admin-table-input" aria-label={`${person.nickname} 이름`} maxLength={60} value={draftName} onChange={(event) => setDraftName(event.target.value)} /> : <strong>{person.nickname}</strong>}</td>
+              <td>{editing ? <input className="input admin-table-input" aria-label={`${person.nickname} 학번`} placeholder="학번 없음" maxLength={32} value={draftStudentId} onChange={(event) => setDraftStudentId(event.target.value)} /> : person.studentId ?? <span className="muted">학번 없음</span>}</td>
+              <td>{person.userCode}</td>
+              <td>{activeWasher ? <span className="admin-active-washer">{activeWasher.name} · {stateLabel[activeWasher.state] ?? activeWasher.state}</span> : <span className="muted">—</span>}</td>
+              <td><span className={person.hasPush ? 'admin-push connected' : 'admin-push'}>{person.hasPush ? `${person.pushDevices}대 연결` : '미연결'}</span></td>
+              <td>{new Date(person.createdAt).toLocaleDateString('ko-KR')}</td>
+              <td>{editing ? <div className="admin-inline-actions"><button className="button small" type="button" disabled={savingUser || !draftName.trim()} onClick={() => void saveUser()}>{savingUser ? '저장 중…' : '저장'}</button><button className="button small secondary" type="button" disabled={savingUser} onClick={() => setEditingUserId(null)}>취소</button></div> : <button className="text-link admin-edit" type="button" onClick={() => editUser(person)}>수정</button>}</td>
+            </tr>;
+          })}
+          {visiblePeople.length === 0 && <tr><td colSpan={7} className="admin-empty">조건에 맞는 사용자가 없습니다.</td></tr>}
+        </tbody></table></div>
+      </section>
+      <section className="section admin-qr-section"><button className="button secondary" type="button" onClick={() => setShowQr((current) => !current)} aria-expanded={showQr}>{showQr ? 'QR 코드 닫기' : 'QR 코드 관리'}</button>{showQr && <WasherQrCards washers={qrWashers} />}</section>
     </>}
-  </main>;
+  </div>;
 }

@@ -193,7 +193,7 @@ export default function Simulator() {
   const canPickup = washer?.state === 'FINISHED' || washer?.state === 'WAITING_FOR_PICKUP';
   const currentUser = users.find((item) => item.id === washer?.currentUserId);
 
-  return <main className="admin-shell">
+  return <div className="admin-shell admin-simulator-shell">
     <div className="topline"><Link className="back" href="/admin"><ArrowLeft /></Link><BrandLogo /></div>
     <h1>세탁기 시뮬레이터</h1>
     <p className="lead">사용자를 등록한 뒤 세탁을 시작하면 약 12초 후 자동으로 종료됩니다. 세탁기 상태는 자동으로 갱신됩니다.</p>
@@ -253,5 +253,5 @@ export default function Simulator() {
 
     {message && <p className={messageIsError ? 'error' : 'notice'} role="status">{message}</p>}
     {ok && <button className="text-link simulator-lock" onClick={lock}><RotateCcw size={14} /> 잠금</button>}
-  </main>;
+  </div>;
 }

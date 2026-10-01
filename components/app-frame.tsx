@@ -122,7 +122,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   }
 
   return <>
-    <main className={admin ? 'app-main' : 'app-main student-app'}>
+    <main className={admin ? 'app-main admin-app' : 'app-main student-app'}>
       {notice && <div className="notice onboarding-result" role="status">{notice}<button className="text-link" onClick={() => setNotice('')}>확인</button></div>}
       {children}
       {!admin && <PushRegistration visible={path === '/'} />}

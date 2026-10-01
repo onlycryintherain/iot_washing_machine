@@ -16,12 +16,13 @@ export async function GET(request: Request) {
     const db = getDb();
     const [machineList, userList, pushList] = await Promise.all([
       db.select().from(washers).orderBy(asc(washers.id)),
-      db.select({ id: users.id, nickname: users.nickname, userCode: users.userCode }).from(users),
+      db.select({ id: users.id, nickname: users.nickname, studentId: users.studentId, userCode: users.userCode, createdAt: users.createdAt }).from(users).orderBy(asc(users.createdAt)),
       db.select({ userId: subscriptions.userId }).from(subscriptions),
     ]);
-    const subscribed = new Set(pushList.map((item) => item.userId));
+    const deviceCounts = new Map<string, number>();
+    for (const item of pushList) deviceCounts.set(item.userId, (deviceCounts.get(item.userId) ?? 0) + 1);
     const withElapsed = machineList.map((washer) => ({ ...washer, elapsedMinutes: washer.startedAt && ['RUNNING', 'MAYBE_FINISHED'].includes(washer.state) ? Math.max(0, Math.floor((Date.now() - washer.startedAt.getTime()) / 60000)) : null }));
-    return NextResponse.json({ washers: withElapsed, users: userList.map((item) => ({ ...item, hasPush: subscribed.has(item.id) })) });
+    return NextResponse.json({ washers: withElapsed, users: userList.map((item) => ({ ...item, hasPush: (deviceCounts.get(item.id) ?? 0) > 0, pushDevices: deviceCounts.get(item.id) ?? 0 })) });
   } catch (error) { return apiError(error); }
 }
 
