@@ -20,7 +20,7 @@ type Washer = {
   doorOpen: boolean;
   pushSentAt: string | null;
 };
-type User = { id: string; nickname: string; userCode: string; hasPush: boolean };
+type User = { id: string; nickname: string; studentId: string | null; hasPush: boolean };
 type SimulatorData = { washers: Washer[]; users: User[] };
 
 const stateNames: Record<WasherState, string> = {
@@ -129,7 +129,7 @@ export default function Simulator() {
       if (!response.ok) throw new Error(result.error || '요청에 실패했습니다.');
       refreshId.current++;
       if (result.washer) setWashers((current) => current.map((washer) => washer.id === result.washer.id ? result.washer : washer));
-      if (result.user) setUsers((current) => [...current, { ...result.user, hasPush: false }]);
+      if (result.user) setUsers((current) => [...current, { ...result.user, studentId: null, hasPush: false }]);
       void load(password, true);
       return result;
     } catch (cause) {
@@ -230,7 +230,7 @@ export default function Simulator() {
         <p className="lead simulator-help">목록에서 선택하거나 아래에 이름을 입력해 테스트 사용자를 만드세요.</p>
         <select className="input" aria-label="시뮬레이터 사용자" value={user} onChange={(event) => setUser(event.target.value)} disabled={demoRunning}>
           <option value="">사용자를 선택하세요</option>
-          {users.map((item) => <option key={item.id} value={item.id}>{item.nickname} · {item.userCode}{item.hasPush ? ' · 알림 연결' : ''}</option>)}
+          {users.map((item) => <option key={item.id} value={item.id}>{item.nickname} · {item.studentId ? `학번 ${item.studentId}` : '학번 없음 (테스트 계정)'}{item.hasPush ? ' · 알림 연결' : ''}</option>)}
         </select>
         <div className="simulator-user-create">
           <input className="input" aria-label="테스트 사용자 이름" placeholder="새 테스트 사용자 이름" value={demoName} maxLength={24} onChange={(event) => setDemoName(event.target.value)} disabled={busy || demoRunning} onKeyDown={(event) => { if (event.key === 'Enter') void makeUser(); }} />

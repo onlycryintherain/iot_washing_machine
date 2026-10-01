@@ -16,7 +16,7 @@ type Item = {
   pushSentAt: string | null;
   elapsedMinutes: number | null;
 };
-type Person = { id: string; nickname: string; studentId: string | null; userCode: string; createdAt: string; hasPush: boolean; pushDevices: number };
+type Person = { id: string; nickname: string; studentId: string | null; createdAt: string; hasPush: boolean; pushDevices: number };
 const stateLabel: Record<string, string> = {
   IDLE: '사용 가능', RESERVED: '시작 대기', RUNNING: '세탁 중', MAYBE_FINISHED: '종료 확인 중',
   FINISHED: '세탁 완료', WAITING_FOR_PICKUP: '수거 대기',
@@ -137,7 +137,7 @@ export default function Admin() {
   const visiblePeople = people.filter((person) => {
     if (userFilter === 'connected' && !person.hasPush) return false;
     if (userFilter === 'disconnected' && person.hasPush) return false;
-    return !query || [person.nickname, person.studentId ?? '', person.userCode].some((value) => value.toLocaleLowerCase('ko-KR').includes(query));
+    return !query || [person.nickname, person.studentId ?? ''].some((value) => value.toLocaleLowerCase('ko-KR').includes(query));
   });
 
   return <div className="admin-shell">
@@ -175,26 +175,25 @@ export default function Admin() {
       <section className="section admin-users-section" aria-labelledby="admin-users-title">
         <div className="admin-users-heading"><div><h2 id="admin-users-title">사용자 관리</h2><p className="lead">이름·학번을 검색하고 등록 정보를 수정하세요.</p></div><span className="admin-count">{visiblePeople.length}명 표시</span></div>
         <div className="admin-user-toolbar">
-          <input className="input" type="search" aria-label="사용자 검색" placeholder="이름, 학번, 사용자 코드 검색" value={search} onChange={(event) => setSearch(event.target.value)} />
+          <input className="input" type="search" aria-label="사용자 검색" placeholder="이름 또는 학번 검색" value={search} onChange={(event) => setSearch(event.target.value)} />
           <select className="input" aria-label="알림 연결 필터" value={userFilter} onChange={(event) => setUserFilter(event.target.value as typeof userFilter)}><option value="all">전체 사용자</option><option value="connected">알림 연결</option><option value="disconnected">알림 미연결</option></select>
         </div>
         {userMessage && <p className="notice" role="status">{userMessage}</p>}
         {userError && <p className="error" role="alert">{userError}</p>}
-        <div className="admin-table-scroll"><table className="admin-table admin-users-table"><thead><tr><th>사용자</th><th>학번</th><th>코드</th><th>현재 세탁기</th><th>알림</th><th>등록일</th><th>관리</th></tr></thead><tbody>
+        <div className="admin-table-scroll"><table className="admin-table admin-users-table"><thead><tr><th>사용자</th><th>학번</th><th>현재 세탁기</th><th>알림</th><th>등록일</th><th>관리</th></tr></thead><tbody>
           {visiblePeople.map((person) => {
             const activeWasher = items.find((washer) => washer.currentUserId === person.id);
             const editing = editingUserId === person.id;
             return <tr key={person.id}>
               <td>{editing ? <input className="input admin-table-input" aria-label={`${person.nickname} 이름`} maxLength={60} value={draftName} onChange={(event) => setDraftName(event.target.value)} /> : <strong>{person.nickname}</strong>}</td>
               <td>{editing ? <input className="input admin-table-input" aria-label={`${person.nickname} 학번`} placeholder="학번 없음" maxLength={32} value={draftStudentId} onChange={(event) => setDraftStudentId(event.target.value)} /> : person.studentId ?? <span className="muted">학번 없음</span>}</td>
-              <td>{person.userCode}</td>
               <td>{activeWasher ? <span className="admin-active-washer">{activeWasher.name} · {stateLabel[activeWasher.state] ?? activeWasher.state}</span> : <span className="muted">—</span>}</td>
               <td><span className={person.hasPush ? 'admin-push connected' : 'admin-push'}>{person.hasPush ? `${person.pushDevices}대 연결` : '미연결'}</span></td>
               <td>{new Date(person.createdAt).toLocaleDateString('ko-KR')}</td>
               <td>{editing ? <div className="admin-inline-actions"><button className="button small" type="button" disabled={savingUser || !draftName.trim()} onClick={() => void saveUser()}>{savingUser ? '저장 중…' : '저장'}</button><button className="button small secondary" type="button" disabled={savingUser} onClick={() => setEditingUserId(null)}>취소</button></div> : <button className="text-link admin-edit" type="button" onClick={() => editUser(person)}>수정</button>}</td>
             </tr>;
           })}
-          {visiblePeople.length === 0 && <tr><td colSpan={7} className="admin-empty">조건에 맞는 사용자가 없습니다.</td></tr>}
+          {visiblePeople.length === 0 && <tr><td colSpan={6} className="admin-empty">조건에 맞는 사용자가 없습니다.</td></tr>}
         </tbody></table></div>
       </section>
       <section className="section admin-qr-section"><button className="button secondary" type="button" onClick={() => setShowQr((current) => !current)} aria-expanded={showQr}>{showQr ? 'QR 코드 닫기' : 'QR 코드 관리'}</button>{showQr && <WasherQrCards washers={qrWashers} />}</section>
