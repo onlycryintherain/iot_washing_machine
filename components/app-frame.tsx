@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Home, WashingMachine } from 'lucide-react';
 import { Onboarding } from '@/components/onboarding';
+import { InstallPrompt, useInstallPrompt } from '@/components/install-prompt';
 
 const items = [
   { href: '/', label: '홈', Icon: Home },
@@ -17,6 +18,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   const [initialized, setInitialized] = useState(false);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [notice, setNotice] = useState('');
+  const installPrompt = useInstallPrompt();
 
   useEffect(() => {
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(console.error);
@@ -43,11 +45,12 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   }
 
   if (!admin && (!initialized || needsOnboarding)) {
-    return initialized ? <Onboarding onComplete={finishOnboarding} /> : <div className="app-startup" aria-label="앱을 여는 중">기숙사 세탁실을 여는 중…</div>;
+    return initialized ? <Onboarding onComplete={finishOnboarding} installPrompt={<InstallPrompt prompt={installPrompt} />} /> : <div className="app-startup" aria-label="앱을 여는 중">기숙사 세탁실을 여는 중…</div>;
   }
 
   return <>
     <main className="app-main">
+      {!admin && <InstallPrompt prompt={installPrompt} />}
       {notice && <div className="notice onboarding-result" role="status">{notice}<button className="text-link" onClick={() => setNotice('')}>확인</button></div>}
       {children}
     </main>

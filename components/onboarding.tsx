@@ -53,7 +53,7 @@ async function savePushSubscription(token: string, subscription: PushSubscriptio
   if (!response.ok) throw new Error('알림 등록을 완료하지 못했습니다.');
 }
 
-export function Onboarding({ onComplete }: { onComplete: (notice?: string) => void }) {
+export function Onboarding({ onComplete, installPrompt }: { onComplete: (notice?: string) => void; installPrompt?: React.ReactNode }) {
   const [name, setName] = useState('');
   const [studentId, setStudentId] = useState('');
   const [publicKey, setPublicKey] = useState('');
@@ -138,6 +138,7 @@ export function Onboarding({ onComplete }: { onComplete: (notice?: string) => vo
       <p className="brand">기숙사 세탁실</p>
       <h1 id="onboarding-title">처음 한 번만 등록해주세요</h1>
       <p className="lead">이름과 학번을 입력하면 세탁기를 바로 사용할 수 있어요.</p>
+      {installPrompt}
       <div className="onboarding-push-note"><BellRing size={18}/><span>등록을 마치면 세탁 완료 알림 허용창이 이어서 열립니다.</span></div>
       <form onSubmit={submit}>
         <label className="eyebrow" htmlFor="student-name">이름</label>
