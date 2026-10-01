@@ -1,0 +1,16 @@
+# Dependencies and generated output
+node_modules/
+.next/
+out/
+dist/
+*.tsbuildinfo
+
+# Local service configuration and credentials
+.neon
+.vercel/
+.env*
+!.env.example
+
+# Local editor and system files
+.DS_Store
+Thumbs.db

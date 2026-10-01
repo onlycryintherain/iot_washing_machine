@@ -1,0 +1,2 @@
+'use client';import { useState } from 'react';import { Copy,Check } from 'lucide-react';
+export function CopyLink({path}:{path:string}){const [copied,setCopied]=useState(false);return <button className="button small secondary" onClick={async()=>{try{await navigator.clipboard.writeText(`${location.origin}${path}`);setCopied(true);setTimeout(()=>setCopied(false),1800);}catch{setCopied(false);}}}>{copied?<><Check size={14}/> 복사됨</>:<><Copy size={14}/> QR 링크 복사</>}</button>;}

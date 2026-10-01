@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="940" viewBox="0 0 1400 940" role="img" aria-labelledby="title desc">
+  <title id="title">ESP32 한 대로 장난감 세탁기 두 대 제어하는 배선도</title>
+  <desc id="desc">시작 버튼 2개는 ESP32 GPIO32와 GPIO33에 연결하고, ESP32 GPIO25, 26, 27, 14는 DRV8833 모터 드라이버 입력에 연결한다. 모터 2개는 드라이버의 A와 B 출력에 연결한다. USB는 ESP32만 공급하고 별도 저전압 전원은 모터 드라이버에 공급하며 모든 회로는 GND를 공유한다.</desc>
+  <defs>
+    <style>
+      text{font-family:'Malgun Gothic','Segoe UI',sans-serif;fill:#17251f}
+      .title{font-size:31px;font-weight:750}.sub{font-size:17px;fill:#53655a}
+      .card{fill:#fff;stroke:#b5c8b9;stroke-width:2.5;rx:16}.board{fill:#eaf5eb;stroke:#3c7959;stroke-width:3;rx:18}
+      .driver{fill:#e9f0fa;stroke:#3e649c;stroke-width:3;rx:18}.power{fill:#fff5e7;stroke:#c48427;stroke-width:2.5;rx:14}
+      .label{font-size:21px;font-weight:700}.small{font-size:16px}.pin{font-size:17px;font-weight:650}.foot{font-size:15px;fill:#526258}
+      .wire{fill:none;stroke:#31704e;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+      .signal{fill:none;stroke:#3e649c;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+      .motorwire{fill:none;stroke:#9a5e1c;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+      .ground{fill:none;stroke:#4b5761;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+      .powerwire{fill:none;stroke:#c48427;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+      .dot{fill:#4b5761}
+    </style>
+  </defs>
+  <rect width="1400" height="940" fill="#f8faf7"/>
+  <text x="65" y="62" class="title">장난감 세탁기 2대 · ESP32 1대</text>
+  <text x="65" y="94" class="sub">버튼을 누르면 해당 모터가 돌고, ESP32가 START를 전송합니다. 설정한 시간이 지나면 멈추고 FINISH를 전송합니다.</text>
+
+  <!-- Supply blocks -->
+  <rect x="416" y="126" width="242" height="68" class="card"/>
+  <text x="537" y="154" text-anchor="middle" class="label">USB 5V 전원</text>
+  <text x="537" y="178" text-anchor="middle" class="small">ESP32에만 연결</text>
+  <rect x="773" y="126" width="276" height="68" class="power"/>
+  <text x="911" y="154" text-anchor="middle" class="label">모터용 별도 전원</text>
+  <text x="911" y="178" text-anchor="middle" class="small">장난감 모터 정격에 맞춤</text>
+  <path d="M537 194 V238" class="powerwire"/>
+  <path d="M876 194 V270" class="powerwire"/>
+  <text x="887" y="226" class="small">+</text>
+
+  <!-- Buttons -->
+  <rect x="65" y="284" width="234" height="112" class="card"/>
+  <text x="182" y="323" text-anchor="middle" class="label">시작 버튼 1</text>
+  <text x="182" y="354" text-anchor="middle" class="small">세탁기 1 · 독립 접점</text>
+  <text x="182" y="380" text-anchor="middle" class="small">누르면 GPIO32 ↔ GND</text>
+  <rect x="65" y="469" width="234" height="112" class="card"/>
+  <text x="182" y="508" text-anchor="middle" class="label">시작 버튼 2</text>
+  <text x="182" y="539" text-anchor="middle" class="small">세탁기 2 · 독립 접점</text>
+  <text x="182" y="565" text-anchor="middle" class="small">누르면 GPIO33 ↔ GND</text>
+
+  <!-- ESP32 -->
+  <rect x="416" y="238" width="302" height="482" class="board"/>
+  <text x="567" y="287" text-anchor="middle" class="label">ESP32 DevKitC</text>
+  <text x="567" y="315" text-anchor="middle" class="small">버튼 감지 · 두 타이머 · Wi-Fi</text>
+  <text x="438" y="363" class="pin">GPIO32</text>
+  <text x="438" y="548" class="pin">GPIO33</text>
+  <text x="618" y="365" class="pin">GPIO25</text>
+  <text x="618" y="414" class="pin">GPIO26</text>
+  <text x="618" y="463" class="pin">GPIO27</text>
+  <text x="618" y="512" class="pin">GPIO14</text>
+  <text x="486" y="679" class="pin">GND</text>
+  <rect x="452" y="588" width="230" height="60" fill="#fff" stroke="#a7c4b1" stroke-width="1.5" rx="10"/>
+  <text x="567" y="613" text-anchor="middle" class="small">HTTPS → Vercel 장치 API</text>
+  <text x="567" y="636" text-anchor="middle" class="small">1번 / 2번 이벤트 분리</text>
+
+  <!-- Button signals and grounds -->
+  <path d="M299 348 H416" class="wire"/>
+  <path d="M299 533 H416" class="wire"/>
+  <path d="M65 375 H40 V796" class="ground"/>
+  <path d="M65 575 H40" class="ground"/>
+  <circle cx="40" cy="575" r="6" class="dot"/>
+
+  <!-- Driver -->
+  <rect x="772" y="270" width="277" height="450" class="driver"/>
+  <text x="910" y="314" text-anchor="middle" class="label">DRV8833</text>
+  <text x="910" y="341" text-anchor="middle" class="small">Pololu 2채널 모터 드라이버</text>
+  <text x="795" y="366" class="pin">AIN1</text>
+  <text x="795" y="415" class="pin">AIN2</text>
+  <text x="795" y="464" class="pin">BIN1</text>
+  <text x="795" y="513" class="pin">BIN2</text>
+  <text x="953" y="397" class="pin">AOUT1/2</text>
+  <text x="953" y="571" class="pin">BOUT1/2</text>
+  <text x="797" y="679" class="pin">GND</text>
+  <text x="911" y="630" text-anchor="middle" class="small">nSLEEP: Pololu 보드 풀업 사용</text>
+  <text x="911" y="655" text-anchor="middle" class="small">VIN: 모터 전원 +</text>
+  <path d="M718 355 H772" class="signal"/>
+  <path d="M718 404 H772" class="signal"/>
+  <path d="M718 453 H772" class="signal"/>
+  <path d="M718 502 H772" class="signal"/>
+
+  <!-- Motors -->
+  <rect x="1123" y="348" width="218" height="105" class="power"/>
+  <text x="1232" y="384" text-anchor="middle" class="label">세탁기 1 모터</text>
+  <text x="1232" y="416" text-anchor="middle" class="small">장난감 세탁조 회전</text>
+  <rect x="1123" y="522" width="218" height="105" class="power"/>
+  <text x="1232" y="558" text-anchor="middle" class="label">세탁기 2 모터</text>
+  <text x="1232" y="590" text-anchor="middle" class="small">장난감 세탁조 회전</text>
+  <path d="M1049 382 H1123" class="motorwire"/>
+  <path d="M1049 412 H1123" class="motorwire"/>
+  <path d="M1049 556 H1123" class="motorwire"/>
+  <path d="M1049 586 H1123" class="motorwire"/>
+
+  <!-- Common ground -->
+  <path d="M40 796 H1363" class="ground"/>
+  <path d="M537 720 V796" class="ground"/>
+  <path d="M911 720 V796" class="ground"/>
+  <path d="M978 194 V220 H1363 V796" class="ground"/>
+  <circle cx="40" cy="796" r="6" class="dot"/>
+  <circle cx="537" cy="796" r="6" class="dot"/><circle cx="911" cy="796" r="6" class="dot"/><circle cx="1363" cy="796" r="6" class="dot"/>
+  <text x="690" y="785" text-anchor="middle" class="small">공통 GND</text>
+
+  <text x="65" y="850" class="foot">가정: 두 장난감 모두 저전압 DC 모터이며, 원래 버튼 접점을 기존 전원 회로에서 분리할 수 있습니다.</text>
+  <text x="65" y="878" class="foot">실물 확인 전에는 모터 전압·기동 전류·버튼 배선을 확정하지 마세요. ESP32 GPIO에 모터 전원이나 기존 버튼 전압을 직접 연결하지 않습니다.</text>
+  <text x="65" y="907" class="foot">제어 예: 버튼 1 → GPIO32 → 모터 A → /washer/1 START → 15초 후 FINISH. 버튼 2도 독립적으로 동일하게 동작.</text>
+</svg>
