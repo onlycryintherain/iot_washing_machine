@@ -6,6 +6,7 @@ import { ArrowLeft } from 'lucide-react';
 import type { WasherSummary } from '@/lib/washer/presentation';
 import { washerPresentation } from '@/lib/washer/presentation';
 import { WasherStatus } from '@/components/washer-status';
+import { WasherTiming } from '@/components/washer-timing';
 
 type Washer = WasherSummary & {
   reservedAt: string | null;
@@ -111,7 +112,9 @@ export default function WasherPage({ params }: { params: Promise<{ washerId: str
       <section className="status-panel" aria-label="현재 세탁기 상태">
         <WasherStatus state={washer.state} />
         <h2 className="status-big">{headline}</h2>
-        {time && <p className="lead">{time}</p>}
+        {washer.startedAt && (washer.state === 'RUNNING' || washer.state === 'MAYBE_FINISHED')
+          ? <WasherTiming startedAt={washer.startedAt} />
+          : time && <p className="lead">{time}</p>}
       </section>
 
       <div className="detail-list">

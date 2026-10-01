@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { BellRing } from 'lucide-react';
 import { useWasherOverview } from '@/components/use-washer-overview';
 import { WasherRow } from '@/components/washer-row';
+import { WasherTiming } from '@/components/washer-timing';
 
 export default function Home() {
   const { washers, myWasher, loaded, error } = useWasherOverview();
@@ -16,7 +17,8 @@ export default function Home() {
 
     {myWasher && <section className="section">
       <div className="section-head"><h2>내 세탁</h2><BellRing size={17} color="var(--green)" aria-hidden="true" /></div>
-      <WasherRow washer={myWasher} />
+      {myWasher.startedAt && (myWasher.state === 'RUNNING' || myWasher.state === 'MAYBE_FINISHED') && <WasherTiming startedAt={myWasher.startedAt} />}
+      <WasherRow washer={myWasher} showTiming={false} />
     </section>}
 
     <div className="summary" aria-live="polite">

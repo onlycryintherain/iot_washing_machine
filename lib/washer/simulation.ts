@@ -1,0 +1,2 @@
+export const SIMULATION_DURATION_SECONDS = 12;
+export const SIMULATED_CYCLE_MINUTES = 48;

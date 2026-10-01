@@ -49,6 +49,8 @@ npm run dev
 
 기본 Washer ID는 `1`, `2`이며 QR 링크는 `/washer/1`, `/washer/2`입니다. 운영 도구는 `/admin`, 시뮬레이터는 `/admin/simulator`입니다. Simulator와 QR 생성 화면은 `ADMIN_PASSWORD`로 보호됩니다. 운영 도구에 로그인한 뒤 세탁기별 QR을 PNG로 저장하거나 안내 카드를 한 번에 인쇄해 세탁기 앞에 붙일 수 있습니다. 사용자는 앱을 처음 열었을 때 이름과 학번을 한 번 등록하고, 이후 QR을 스캔해 세탁기를 예약합니다. 학번은 DB에 저장하며 공개 화면에는 표시하지 않습니다.
 
+사용자 홈과 세탁기 상세 화면은 세탁 시작 시각을 기준으로 48분 세탁 과정을 12초로 압축해 진행률, 실제 남은 초, 완료 예정 시각을 표시합니다. 실제 종료 이벤트가 도착하기 전에는 예정 시각이 지나도 완료 상태로 바꾸지 않습니다. QR 스캔 화면은 카메라 스캔에 집중하며 세탁기 직접 선택은 홈과 세탁기 목록에서 할 수 있습니다.
+
 ## Neon setup
 
 Neon에서 PostgreSQL 프로젝트를 만들고 연결 문자열을 `DATABASE_URL`에 입력합니다. `npm run db:migrate`는 `drizzle/0000_initial.sql`을 적용하고 세탁기 2대를 seed합니다. `npm run db:seed`는 해당 세탁기 행이 없는 경우 추가합니다. 스키마 변경은 Drizzle schema와 migration SQL을 함께 갱신합니다.

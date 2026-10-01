@@ -6,6 +6,7 @@ import { sessions, subscriptions, washers, users } from '@/lib/db/schema';
 import { processWasherEvent, reserveWasher } from '@/lib/washer/service';
 import { createUser } from '@/lib/auth/identity';
 import { apiError } from '@/lib/http';
+import { SIMULATION_DURATION_SECONDS } from '@/lib/washer/simulation';
 function authorized(request: Request) { return !!process.env.ADMIN_PASSWORD && request.headers.get('x-admin-password') === process.env.ADMIN_PASSWORD; }
 export const maxDuration = 30;
 
@@ -40,7 +41,7 @@ export async function POST(request: Request) {
     if (data.action === 'reserve') return NextResponse.json({ washer: await reserveWasher(data.washerId, data.userId) });
     if (data.action === 'event') return NextResponse.json({ washer: await processWasherEvent(data.washerId, data.event) });
     await processWasherEvent(data.washerId, 'START', { vibration: 16, current: .42, doorOpen: false });
-    await new Promise((resolve) => setTimeout(resolve, 12_000));
+    await new Promise((resolve) => setTimeout(resolve, SIMULATION_DURATION_SECONDS * 1000));
     const [washer] = await getDb().select({ state: washers.state }).from(washers).where(eq(washers.id, data.washerId)).limit(1);
     if (washer?.state !== 'RUNNING') return NextResponse.json({ error: '시뮬레이션 중 세탁기 상태가 변경되었습니다.' }, { status: 409 });
     const finished = await processWasherEvent(data.washerId, 'FINISH', { vibration: 0, current: 0, doorOpen: false });
