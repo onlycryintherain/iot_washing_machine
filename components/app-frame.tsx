@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Onboarding } from '@/components/onboarding';
 import { InstallGate, useInstallPrompt } from '@/components/install-prompt';
+import { PushRegistration } from '@/components/push-registration';
 
 export function AppFrame({ children }: { children: React.ReactNode }) {
   const path = usePathname();
@@ -57,6 +58,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   return <>
     <main className={admin ? 'app-main' : 'app-main student-app'}>
       {notice && <div className="notice onboarding-result" role="status">{notice}<button className="text-link" onClick={() => setNotice('')}>확인</button></div>}
+      {!admin && <PushRegistration visible={path === '/'} />}
       {children}
     </main>
   </>;

@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { WashingMachine } from 'lucide-react';
+import { getPushSubscription, pushSupported, savePushSubscription } from '@/lib/push/client';
 
 type Profile = { id: string; nickname: string; userCode: string; profileComplete: true };
 
@@ -18,7 +19,7 @@ function isIos() {
 }
 
 function requestPermissionFromTap(): { result: Promise<NotificationPermission> | null; unavailableReason: string | null } {
-  if (!('Notification' in window) || !('PushManager' in window) || !('serviceWorker' in navigator)) {
+  if (!pushSupported()) {
     return { result: null, unavailableReason: '이 브라우저에서는 푸시 알림을 지원하지 않습니다.' };
   }
   if (isIos() && !isInstalled()) {
@@ -33,39 +34,12 @@ function requestPermissionFromTap(): { result: Promise<NotificationPermission> |
   }
 }
 
-function applicationServerKey(encoded: string) {
-  const padded = encoded.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(encoded.length / 4) * 4, '=');
-  return Uint8Array.from(atob(padded), (character) => character.charCodeAt(0));
-}
-
-async function createPushSubscription(publicKey: string) {
-  const registration = await navigator.serviceWorker.ready;
-  const existing = await registration.pushManager.getSubscription();
-  return existing ?? registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: applicationServerKey(publicKey) });
-}
-
-async function savePushSubscription(token: string, subscription: PushSubscription) {
-  const response = await fetch('/api/push/subscribe', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
-    body: JSON.stringify(subscription.toJSON()),
-  });
-  if (!response.ok) throw new Error('알림 등록을 완료하지 못했습니다.');
-}
-
 export function Onboarding({ onComplete }: { onComplete: (notice?: string) => void }) {
   const [name, setName] = useState('');
   const [studentId, setStudentId] = useState('');
-  const [publicKey, setPublicKey] = useState('');
   const [existingToken] = useState(() => typeof window === 'undefined' ? '' : localStorage.getItem('laundry-token') ?? '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    fetch('/api/push/subscribe').then((response) => response.json()).then((data) => {
-      if (typeof data.publicKey === 'string') setPublicKey(data.publicKey);
-    }).catch(() => {});
-  }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -89,8 +63,7 @@ export function Onboarding({ onComplete }: { onComplete: (notice?: string) => vo
       let subscription: PushSubscription | null = null;
       if (permission === 'granted') {
         try {
-          if (!publicKey) throw new Error('알림 키를 불러오지 못했습니다.');
-          subscription = await createPushSubscription(publicKey);
+          subscription = await getPushSubscription();
         } catch {
           notice = '알림 허용은 완료했지만 기기 등록에 실패했습니다.';
         }

@@ -107,6 +107,8 @@ body:has(.student-app),body:has(.onboarding-backdrop){background:#f2f4f6}
 .student-app .my-wash-card:focus-visible{outline:3px solid #8bc0ff;outline-offset:3px}
 .student-app .status-panel{margin-top:20px}
 .student-app .status-panel .status-big{margin:13px 0 5px}
+.student-app .push-registration{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 18px;padding:12px 14px;border:1px solid #e5e8eb;border-radius:12px;background:#fff;color:#4e5968;font-size:13px;line-height:1.5}
+.student-app .push-registration .text-link{flex:none;border:0;background:none;cursor:pointer;white-space:nowrap}
 .student-app .action-hint{margin:0 0 2px;color:#4e5968;font-size:13px;line-height:1.5}
 .student-app .action-stack{gap:8px;margin-top:18px}
 .student-app .back{display:inline-flex;align-items:center;justify-content:center;min-width:32px;min-height:32px;margin:-4px}
