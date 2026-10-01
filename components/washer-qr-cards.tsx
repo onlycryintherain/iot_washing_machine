@@ -47,16 +47,16 @@ export function WasherQrCards({ washers }: { washers: Washer[] }) {
 
   return <section className="qr-generator section">
     <div className="section-head qr-screen-only">
-      <div><h2>세탁기 QR 코드</h2><p className="lead">인쇄해 각 세탁기 앞에 붙이면 사용자가 바로 상태를 확인하고 등록할 수 있어요.</p></div>
+      <div><h2>세탁기 QR 코드</h2><p className="lead">인쇄해 각 세탁기 앞에 붙이세요. 사용자는 설치된 앱의 QR 스캔 화면에서 세탁기를 찾을 수 있어요.</p></div>
     </div>
-    <div className="qr-help qr-screen-only"><strong>사용자는 이렇게 이용해요</strong><span>① 카메라로 QR 스캔</span><span>② 닉네임 입력</span><span>③ 사용 등록</span></div>
+    <div className="qr-help qr-screen-only"><strong>사용자는 이렇게 이용해요</strong><span>① 앱 설치</span><span>② 앱에서 QR 스캔</span><span>③ 사용 등록</span></div>
     {error && <p className="error qr-screen-only">{error}</p>}
     <div className="qr-print-grid">
       {washers.map((washer) => <article className="qr-print-card" key={washer.id}>
         <p className="qr-card-kicker">기숙사 공용 세탁실</p>
         <h3>{washer.name}</h3>
         {codes[washer.id] ? <img className="qr-image" src={codes[washer.id]} alt={`${washer.name} 이용 페이지 QR 코드`} /> : <div className="qr-placeholder" aria-label="QR 코드 생성 중">QR 생성 중…</div>}
-        <p className="qr-instruction">카메라로 스캔해 상태를 확인하고 사용 등록하세요.</p>
+        <p className="qr-instruction">‘세탁실’ 앱의 QR 스캔 화면에서 스캔하세요.</p>
         <p className="qr-short-url">{origin}/washer/{washer.id}</p>
         <button className="button small secondary qr-screen-only" disabled={!codes[washer.id]} onClick={() => download(washer)}><Download size={15}/> QR 이미지 저장</button>
       </article>)}

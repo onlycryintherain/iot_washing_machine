@@ -3,12 +3,13 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Home, WashingMachine } from 'lucide-react';
+import { Home, ScanLine, WashingMachine } from 'lucide-react';
 import { Onboarding } from '@/components/onboarding';
 import { InstallGate, useInstallPrompt } from '@/components/install-prompt';
 
 const items = [
   { href: '/', label: '홈', Icon: Home },
+  { href: '/scan', label: 'QR 스캔', Icon: ScanLine },
   { href: '/washers', label: '세탁기', Icon: WashingMachine },
 ];
 
