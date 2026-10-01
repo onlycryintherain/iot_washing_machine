@@ -40,6 +40,11 @@ export default function WasherPage({ params }: { params: Promise<{ washerId: str
         headers: { authorization: `Bearer ${localStorage.getItem('laundry-token') ?? ''}` },
         cache: 'no-store',
       }).then((response) => {
+        if (response.status === 401) {
+          localStorage.removeItem('laundry-token');
+          localStorage.removeItem('laundry-user');
+          window.dispatchEvent(new Event('laundry-profile-updated'));
+        }
         if (!response.ok) throw new Error('세탁기 상태를 불러오지 못했습니다.');
         return response.json();
       }).then((data) => {

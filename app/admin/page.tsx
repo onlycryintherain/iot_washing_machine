@@ -41,6 +41,9 @@ export default function Admin() {
   const [draftName, setDraftName] = useState('');
   const [draftStudentId, setDraftStudentId] = useState('');
   const [savingUser, setSavingUser] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Person | null>(null);
+  const [deletingUser, setDeletingUser] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
   const [userMessage, setUserMessage] = useState('');
   const [userError, setUserError] = useState('');
   const refreshId = useRef(0);
@@ -100,6 +103,7 @@ export default function Admin() {
     setEditingUserId(null);
     setUserMessage('');
     setUserError('');
+    setDeleteTarget(null);
   }
 
   function editUser(person: Person) {
@@ -129,6 +133,26 @@ export default function Admin() {
     } catch (cause) {
       setUserError(cause instanceof Error ? cause.message : '사용자 정보를 저장하지 못했습니다.');
     } finally { setSavingUser(false); }
+  }
+
+  async function deleteUser() {
+    if (!deleteTarget || deletingUser) return;
+    setDeletingUser(true);
+    setDeleteError('');
+    try {
+      const response = await fetch(`/api/admin/users/${encodeURIComponent(deleteTarget.id)}`, {
+        method: 'DELETE',
+        headers: { 'x-admin-password': password },
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || '사용자를 삭제하지 못했습니다.');
+      setPeople((current) => current.filter((person) => person.id !== deleteTarget.id));
+      setUserMessage(`${deleteTarget.nickname} 사용자를 삭제했습니다.`);
+      setDeleteTarget(null);
+      void load(password, true);
+    } catch (cause) {
+      setDeleteError(cause instanceof Error ? cause.message : '사용자를 삭제하지 못했습니다.');
+    } finally { setDeletingUser(false); }
   }
 
   const availableCount = items.filter((washer) => washer.state === 'IDLE').length;
@@ -173,7 +197,7 @@ export default function Admin() {
         </article>;
       })}</div>
       <section className="section admin-users-section" aria-labelledby="admin-users-title">
-        <div className="admin-users-heading"><div><h2 id="admin-users-title">사용자 관리</h2><p className="lead">이름·학번을 검색하고 등록 정보를 수정하세요.</p></div><span className="admin-count">{visiblePeople.length}명 표시</span></div>
+        <div className="admin-users-heading"><div><h2 id="admin-users-title">사용자 관리</h2><p className="lead">이름·학번을 검색하고 등록 정보를 수정하거나 삭제하세요.</p></div><span className="admin-count">{visiblePeople.length}명 표시</span></div>
         <div className="admin-user-toolbar">
           <input className="input" type="search" aria-label="사용자 검색" placeholder="이름 또는 학번 검색" value={search} onChange={(event) => setSearch(event.target.value)} />
           <select className="input" aria-label="알림 연결 필터" value={userFilter} onChange={(event) => setUserFilter(event.target.value as typeof userFilter)}><option value="all">전체 사용자</option><option value="connected">알림 연결</option><option value="disconnected">알림 미연결</option></select>
@@ -190,7 +214,7 @@ export default function Admin() {
               <td>{activeWasher ? <span className="admin-active-washer">{activeWasher.name} · {stateLabel[activeWasher.state] ?? activeWasher.state}</span> : <span className="muted">—</span>}</td>
               <td><span className={person.hasPush ? 'admin-push connected' : 'admin-push'}>{person.hasPush ? `${person.pushDevices}대 연결` : '미연결'}</span></td>
               <td>{new Date(person.createdAt).toLocaleDateString('ko-KR')}</td>
-              <td>{editing ? <div className="admin-inline-actions"><button className="button small" type="button" disabled={savingUser || !draftName.trim()} onClick={() => void saveUser()}>{savingUser ? '저장 중…' : '저장'}</button><button className="button small secondary" type="button" disabled={savingUser} onClick={() => setEditingUserId(null)}>취소</button></div> : <button className="text-link admin-edit" type="button" onClick={() => editUser(person)}>수정</button>}</td>
+              <td>{editing ? <div className="admin-inline-actions"><button className="button small" type="button" disabled={savingUser || !draftName.trim()} onClick={() => void saveUser()}>{savingUser ? '저장 중…' : '저장'}</button><button className="button small secondary" type="button" disabled={savingUser} onClick={() => setEditingUserId(null)}>취소</button></div> : <><div className="admin-inline-actions"><button className="text-link admin-edit" type="button" onClick={() => editUser(person)}>수정</button><button className="text-link admin-edit admin-delete" type="button" disabled={!!activeWasher} onClick={() => { setDeleteError(''); setDeleteTarget(person); }}>삭제</button></div>{activeWasher && <small className="admin-delete-hint">세탁기 해제 후 삭제 가능</small>}</>}</td>
             </tr>;
           })}
           {visiblePeople.length === 0 && <tr><td colSpan={6} className="admin-empty">조건에 맞는 사용자가 없습니다.</td></tr>}
@@ -198,5 +222,14 @@ export default function Admin() {
       </section>
       <section className="section admin-qr-section"><button className="button secondary" type="button" onClick={() => setShowQr((current) => !current)} aria-expanded={showQr}>{showQr ? 'QR 코드 닫기' : 'QR 코드 관리'}</button>{showQr && <WasherQrCards washers={qrWashers} />}</section>
     </>}
+    {deleteTarget && <div className="admin-dialog-backdrop" role="presentation" onClick={() => { if (!deletingUser) setDeleteTarget(null); }}>
+      <section className="admin-delete-dialog" role="dialog" aria-modal="true" aria-labelledby="delete-user-title" onClick={(event) => event.stopPropagation()} onKeyDown={(event) => { if (event.key === 'Escape' && !deletingUser) setDeleteTarget(null); }}>
+        <h2 id="delete-user-title">사용자를 삭제할까요?</h2>
+        <p><strong>{deleteTarget.nickname}</strong>{deleteTarget.studentId ? ` · 학번 ${deleteTarget.studentId}` : ' · 학번 없음'}</p>
+        <p className="lead">이 사용자의 세탁 기록과 알림 연결도 함께 삭제됩니다. 이 작업은 되돌릴 수 없습니다.</p>
+        {deleteError && <p className="error" role="alert">{deleteError}</p>}
+        <div className="admin-dialog-actions"><button className="button secondary" type="button" autoFocus disabled={deletingUser} onClick={() => setDeleteTarget(null)}>취소</button><button className="button danger" type="button" disabled={deletingUser} onClick={() => void deleteUser()}>{deletingUser ? '삭제 중…' : '사용자 삭제'}</button></div>
+      </section>
+    </div>}
   </div>;
 }

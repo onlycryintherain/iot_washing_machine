@@ -87,6 +87,15 @@
 .admin-push.connected{background:var(--green-soft);color:var(--green)}
 .admin-inline-actions{display:flex;gap:5px}
 .admin-edit{border:0;background:transparent;cursor:pointer;white-space:nowrap}
+.admin-delete{color:var(--red)}
+.admin-delete:disabled{color:#aeb3ae;cursor:not-allowed}
+.admin-delete-hint{display:block;margin-top:5px;color:var(--muted);font-size:11px}
+.admin-dialog-backdrop{position:fixed;z-index:50;inset:0;display:grid;place-items:center;padding:20px;background:#17211b80}
+.admin-delete-dialog{width:min(100%,440px);padding:26px;border:1px solid var(--line);border-radius:16px;background:#fff;box-shadow:0 20px 70px #17211b30}
+.admin-delete-dialog h2{font-size:21px;margin-bottom:17px}
+.admin-delete-dialog>p:not(.lead):not(.error){margin:0 0 10px;font-size:15px}
+.admin-dialog-actions{display:flex;gap:8px;margin-top:24px}
+.admin-dialog-actions .button{flex:1;width:auto}
 .admin-empty{text-align:center!important;color:var(--muted);padding:30px!important}
 .admin-qr-section>.button{width:auto}
 @media(max-width:800px){.admin-shell{padding:22px 18px 48px}.admin-overview{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-page-heading{margin-top:26px}}
