@@ -2,13 +2,14 @@
 
 import { useWasherOverview } from '@/components/use-washer-overview';
 import { WasherRow } from '@/components/washer-row';
-import { BrandLogo } from '@/components/brand-logo';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 
 export default function WashersPage() {
   const { washers, loaded, error } = useWasherOverview();
 
   return <>
-    <div className="topline"><BrandLogo /></div>
+    <div className="topline"><Link className="back" href="/" aria-label="홈으로 돌아가기"><ArrowLeft size={20} /></Link></div>
     <h1>세탁기</h1>
     <p className="lead">아래에서 세탁기를 선택하거나 QR 스캔 화면에서 세탁기 코드를 스캔하세요.</p>
     <section className="section" aria-label="세탁기 목록">

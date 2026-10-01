@@ -1,19 +1,12 @@
 'use client';
 
-import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { Home, ScanLine, WashingMachine } from 'lucide-react';
 import { Onboarding } from '@/components/onboarding';
 import { InstallGate, useInstallPrompt } from '@/components/install-prompt';
 import { PushRegistration } from '@/components/push-registration';
-
-const items = [
-  { href: '/', label: '홈', Icon: Home },
-  { href: '/scan', label: 'QR 스캔', Icon: ScanLine },
-  { href: '/washers', label: '세탁기', Icon: WashingMachine },
-];
+import { AndroidNotificationSetup, shouldShowAndroidNotificationSetup } from '@/components/android-notification-setup';
 
 export function AppFrame({ children }: { children: React.ReactNode }) {
   const path = usePathname();
@@ -21,13 +14,31 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   const admin = path.startsWith('/admin');
   const [initialized, setInitialized] = useState(false);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
+  const [needsAndroidNotification, setNeedsAndroidNotification] = useState(false);
   const [notice, setNotice] = useState('');
   const installPrompt = useInstallPrompt();
+
+  useEffect(() => {
+    if (admin) return;
+    const preventPinch = (event: TouchEvent) => {
+      if (event.touches.length > 1) event.preventDefault();
+    };
+    const preventGesture = (event: Event) => event.preventDefault();
+    document.addEventListener('touchmove', preventPinch, { passive: false });
+    document.addEventListener('gesturestart', preventGesture, { passive: false });
+    document.addEventListener('gesturechange', preventGesture, { passive: false });
+    return () => {
+      document.removeEventListener('touchmove', preventPinch);
+      document.removeEventListener('gesturestart', preventGesture);
+      document.removeEventListener('gesturechange', preventGesture);
+    };
+  }, [admin]);
 
   useEffect(() => {
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(console.error);
     if (admin) {
       setNeedsOnboarding(false);
+      setNeedsAndroidNotification(false);
       setInitialized(true);
       return;
     }
@@ -41,6 +52,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
         complete = false;
       }
       setNeedsOnboarding(!complete);
+      setNeedsAndroidNotification(complete && shouldShowAndroidNotificationSetup());
     };
     syncProfile();
     window.addEventListener('laundry-profile-updated', syncProfile);
@@ -105,14 +117,15 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     return <Onboarding onComplete={finishOnboarding} />;
   }
 
+  if (!admin && needsAndroidNotification) {
+    return <AndroidNotificationSetup onComplete={() => setNeedsAndroidNotification(false)} />;
+  }
+
   return <>
     <main className={admin ? 'app-main' : 'app-main student-app'}>
       {notice && <div className="notice onboarding-result" role="status">{notice}<button className="text-link" onClick={() => setNotice('')}>확인</button></div>}
       {children}
       {!admin && <PushRegistration visible={path === '/'} />}
     </main>
-    {!admin && <nav className="tabbar" aria-label="주 메뉴">{items.map(({ href, label, Icon }) =>
-      <Link href={href} key={href} className={path === href ? 'tab active' : 'tab'}><Icon size={20} strokeWidth={1.8} /><span>{label}</span></Link>
-    )}</nav>}
   </>;
 }

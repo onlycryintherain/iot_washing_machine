@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from 'react';
 import Image from 'next/image';
 import { getPushSubscription, pushSupported, savePushSubscription } from '@/lib/push/client';
+import { AndroidNotificationSetup, shouldShowAndroidNotificationSetup } from '@/components/android-notification-setup';
 
 type Profile = { id: string; nickname: string; userCode: string; profileComplete: true };
 
@@ -40,6 +41,8 @@ export function Onboarding({ onComplete }: { onComplete: (notice?: string) => vo
   const [existingToken] = useState(() => typeof window === 'undefined' ? '' : localStorage.getItem('laundry-token') ?? '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [androidPermissionStep, setAndroidPermissionStep] = useState(shouldShowAndroidNotificationSetup);
+  const [permissionDeferred, setPermissionDeferred] = useState(false);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -49,7 +52,9 @@ export function Onboarding({ onComplete }: { onComplete: (notice?: string) => vo
     }
 
     // Request permission before any network wait so the browser sees this as a direct tap.
-    const permissionRequest = requestPermissionFromTap();
+    const permissionRequest = permissionDeferred
+      ? { result: null, unavailableReason: '알림은 홈 화면에서 나중에 허용할 수 있습니다.' }
+      : requestPermissionFromTap();
     setBusy(true);
     setError('');
     try {
@@ -102,6 +107,11 @@ export function Onboarding({ onComplete }: { onComplete: (notice?: string) => vo
       setBusy(false);
     }
   }
+
+  if (androidPermissionStep) return <AndroidNotificationSetup onComplete={(permission) => {
+    setPermissionDeferred(permission === 'default' || permission === 'skipped');
+    setAndroidPermissionStep(false);
+  }} />;
 
   return <div className="onboarding-backdrop">
     <section className="onboarding-card" aria-labelledby="onboarding-title">
