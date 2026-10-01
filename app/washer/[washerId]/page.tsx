@@ -115,19 +115,23 @@ export default function WasherPage({ params }: { params: Promise<{ washerId: str
     : washer?.startedAt ? `${timeLabel(washer.startedAt)} 시작` : '';
 
   return <>
-    <div className="topline"><Link className="back" href="/" aria-label="홈으로 돌아가기"><ArrowLeft size={20} /></Link><span className="brand">기숙사 세탁실</span></div>
+    <div className="topline"><Link className="back" href="/" aria-label="홈으로 돌아가기"><ArrowLeft size={20} /></Link><span className="eyebrow">{washer?.location ?? '기숙사 세탁실'}</span></div>
     {!washer ? <>
       <h1>{loaded && loadError === '세탁기를 찾을 수 없습니다.' ? '세탁기를 찾을 수 없어요' : '세탁기 상태'}</h1>
       <p className="muted" role="status">{loadError || (offline ? '인터넷 연결을 확인해주세요.' : '세탁기 상태를 불러오는 중…')}</p>
       {loadError && <button className="button secondary" type="button" onClick={() => location.reload()}>다시 시도</button>}
     </> : <>
       <h1>{washer.name}</h1>
-      <p className="lead">{washer.location}</p>
       <section className="status-panel" aria-label="현재 세탁기 상태">
         <WasherStatus state={washer.state} />
         <h2 className="status-big">{headline}</h2>
         {time && <p className="lead">{time}</p>}
       </section>
+
+      <div className="detail-list">
+        <div className="detail-row"><span>세탁 상태</span><span>{status?.label}</span></div>
+        <div className="detail-row"><span>최근 활동</span><span>{timeLabel(washer.lastActivityAt) || '—'}</span></div>
+      </div>
 
       {offline && <p className="notice" role="status">오프라인 상태입니다. 마지막으로 확인한 상태를 보여드려요.</p>}
       {loadError && !offline && <p className="notice" role="status">{loadError} 마지막으로 확인한 상태를 보여드려요.</p>}

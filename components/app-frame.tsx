@@ -1,10 +1,18 @@
 'use client';
 
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { Home, ScanLine, WashingMachine } from 'lucide-react';
 import { Onboarding } from '@/components/onboarding';
 import { InstallGate, useInstallPrompt } from '@/components/install-prompt';
 import { PushRegistration } from '@/components/push-registration';
+
+const items = [
+  { href: '/', label: '홈', Icon: Home },
+  { href: '/scan', label: 'QR 스캔', Icon: ScanLine },
+  { href: '/washers', label: '세탁기', Icon: WashingMachine },
+];
 
 export function AppFrame({ children }: { children: React.ReactNode }) {
   const path = usePathname();
@@ -58,8 +66,11 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   return <>
     <main className={admin ? 'app-main' : 'app-main student-app'}>
       {notice && <div className="notice onboarding-result" role="status">{notice}<button className="text-link" onClick={() => setNotice('')}>확인</button></div>}
-      {!admin && <PushRegistration visible={path === '/'} />}
       {children}
+      {!admin && <PushRegistration visible={path === '/'} />}
     </main>
+    {!admin && <nav className="tabbar" aria-label="주 메뉴">{items.map(({ href, label, Icon }) =>
+      <Link href={href} key={href} className={path === href ? 'tab active' : 'tab'}><Icon size={20} strokeWidth={1.8} /><span>{label}</span></Link>
+    )}</nav>}
   </>;
 }
