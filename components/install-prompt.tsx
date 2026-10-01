@@ -36,6 +36,7 @@ export function useInstallPrompt() {
     setReady(true);
 
     const onBeforeInstallPrompt = (event: Event) => {
+      if (getPlatform() === 'other') return;
       event.preventDefault();
       setPromptEvent(event as BeforeInstallPromptEvent);
     };
@@ -98,11 +99,6 @@ export function InstallGate({ prompt }: { prompt: ReturnType<typeof useInstallPr
       {prompt.platform === 'android' && !prompt.canPrompt && !prompt.justInstalled && <div className="install-gate-instructions">
         <strong>Android 설치 방법</strong>
         <p>Chrome의 메뉴(⋮)에서 ‘앱 설치’ 또는 ‘홈 화면에 추가’를 선택해주세요.</p>
-      </div>}
-
-      {prompt.platform === 'other' && !prompt.canPrompt && !prompt.justInstalled && <div className="install-gate-instructions">
-        <strong>설치 방법</strong>
-        <p>브라우저 메뉴에서 ‘앱 설치’ 또는 ‘홈 화면에 추가’를 선택해주세요. 메뉴가 보이지 않으면 Chrome이나 Edge에서 열어주세요.</p>
       </div>}
 
       {prompt.justInstalled && <p className="install-gate-success" role="status">설치가 완료되었습니다. 홈 화면 또는 앱 목록에서 ‘세탁실’을 열어주세요.</p>}

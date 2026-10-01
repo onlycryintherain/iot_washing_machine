@@ -49,7 +49,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     return <div className="app-startup" aria-label="앱을 여는 중">기숙사 세탁실을 여는 중…</div>;
   }
 
-  if (!admin && !installPrompt.standalone) {
+  if (!admin && installPrompt.platform !== 'other' && !installPrompt.standalone) {
     return <InstallGate prompt={installPrompt} />;
   }
 
