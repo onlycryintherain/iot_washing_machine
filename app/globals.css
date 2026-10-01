@@ -33,4 +33,3 @@
 .student-app .washer-timing-track span{display:block;height:100%;border-radius:inherit;background:var(--green);transition:width .25s linear}
 .student-app .washer-timing-meta{display:flex;justify-content:space-between;flex-wrap:wrap;gap:5px 12px;margin-top:10px;font-size:12px;line-height:1.5;font-weight:600}
 .student-app .washer-timing-meta span:last-child{color:var(--green)}
-.student-app .washer-timing-note{margin:10px 0 0;color:var(--muted);font-size:11px;line-height:1.5}
