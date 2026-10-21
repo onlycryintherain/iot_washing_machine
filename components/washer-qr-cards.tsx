@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable react-hooks/set-state-in-effect -- read the browser origin after hydration */
 
 import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';

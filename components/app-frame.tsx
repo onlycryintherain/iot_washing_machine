@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable react-hooks/set-state-in-effect -- read browser-only state after hydration */
 
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';

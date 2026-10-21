@@ -41,7 +41,7 @@ VAPID 키는 `npm run push:vapid`로 생성합니다. 공개 키와 개인 키 �
 
 ```bash
 npm install
-Copy-Item .env.example .env.local
+cp .env.example .env.local   # Windows PowerShell: Copy-Item .env.example .env.local
 npm run db:migrate
 npm run db:seed
 npm run dev
@@ -50,6 +50,27 @@ npm run dev
 기본 Washer ID는 `1`, `2`이며 QR 링크는 `/washer/1`, `/washer/2`입니다. 운영 도구는 `/admin`, 시뮬레이터는 `/admin/simulator`입니다. Simulator와 QR 생성 화면은 `ADMIN_PASSWORD`로 보호됩니다. 운영 도구에 로그인한 뒤 세탁기별 QR을 PNG로 저장하거나 안내 카드를 한 번에 인쇄해 세탁기 앞에 붙일 수 있습니다. 사용자는 앱을 처음 열었을 때 이름과 학번을 한 번 등록하고, 이후 QR을 스캔해 세탁기를 예약합니다. 학번은 DB에 저장하며 공개 화면에는 표시하지 않습니다.
 
 사용자 홈과 세탁기 상세 화면은 세탁 시작 시각을 기준으로 48분 세탁 과정을 12초로 압축해 진행률과 남은 분을 표시합니다. 사용자 화면에는 가속 사실을 표시하지 않으며, 완료 예정 시각은 실제 종료 예정 시각을 오전/오후 시·분 형식으로 보여줍니다. 종료 이벤트가 도착하기 전에는 예정 시각이 지나도 완료 상태로 바꾸지 않습니다. QR 스캔 화면은 카메라 스캔에 집중하며 세탁기 직접 선택은 홈과 세탁기 목록에서 할 수 있습니다.
+
+## Device API (ESP32 contract)
+
+기기는 아래 요청 하나로 상태를 보고합니다. `event`는 `START`, `ACTIVITY`, `NO_ACTIVITY`, `RESUME`, `FINISH`, `DOOR_OPEN`, `PICKUP`, `RESET` 중 하나이고, `sensors`와 `timestamp`(ISO 8601)는 선택입니다. 현재 상태에서 허용되지 않는 이벤트는 `409`로 거절되어 센서 오탐이 상태를 망가뜨리지 않습니다.
+
+```bash
+curl -X POST "$APP_URL/api/device/washers/1/event" \
+  -H "Authorization: Bearer $DEVICE_API_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '{"event":"ACTIVITY","sensors":{"vibration":16,"current":0.42,"doorOpen":false}}'
+```
+
+`/admin/simulator`의 **기기 이벤트 직접 전송** 패널은 같은 endpoint를 호출하므로, 펌웨어를 만들기 전에 payload와 상태 전이를 그대로 검증할 수 있습니다. **대기 중인 알림 처리** 버튼은 스케줄러를 기다리지 않고 완료·수거 알림을 즉시 처리합니다.
+
+## Quality checks
+
+```bash
+npm run lint && npm run typecheck && npm test && npm run build
+```
+
+`tests/`는 상태 머신 전이, 인증 비교, 에러 응답, 기기 payload 검증을 다룹니다. 같은 검사가 PR과 `main` push마다 GitHub Actions(`ci.yml`)에서 실행됩니다. `push-reminders.yml`의 호출 주소는 저장소 변수 `APP_URL`로 바꿀 수 있습니다.
 
 ## Neon setup
 

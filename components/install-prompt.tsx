@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable react-hooks/set-state-in-effect -- detect browser install capabilities after hydration */
 
 import { useEffect, useState } from 'react';
 import { Download } from 'lucide-react';

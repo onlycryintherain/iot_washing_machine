@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable react-hooks/set-state-in-effect -- restore a saved admin session after hydration */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';

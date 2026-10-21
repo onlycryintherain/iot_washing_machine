@@ -16,9 +16,10 @@ jobs:
       - name: Process completed washes and pickup reminders
         env:
           DEVICE_API_SECRET: ${{ secrets.DEVICE_API_SECRET }}
+          APP_URL: ${{ vars.APP_URL }}
         run: |
           test -n "$DEVICE_API_SECRET"
           curl --fail-with-body --silent --show-error --max-time 60 \
             --request POST \
             --header "Authorization: Bearer $DEVICE_API_SECRET" \
-            https://iotwashingmachine.vercel.app/api/internal/process-reminders
+            "${APP_URL:-https://iotwashingmachine.vercel.app}/api/internal/process-reminders"
