@@ -23,6 +23,8 @@ type Washer = {
 type User = { id: string; nickname: string; studentId: string | null; hasPush: boolean };
 type SimulatorData = { washers: Washer[]; users: User[] };
 
+const deviceEvents = ['START', 'ACTIVITY', 'NO_ACTIVITY', 'RESUME', 'FINISH', 'DOOR_OPEN', 'PICKUP', 'RESET'] as const;
+
 const stateNames: Record<WasherState, string> = {
   IDLE: '사용 가능',
   RESERVED: '사용자 등록됨',
@@ -43,6 +45,11 @@ export default function Simulator() {
   const [busy, setBusy] = useState(false);
   const [demoRunning, setDemoRunning] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(12);
+  const [deviceEvent, setDeviceEvent] = useState<(typeof deviceEvents)[number]>('ACTIVITY');
+  const [vibration, setVibration] = useState('');
+  const [currentAmp, setCurrentAmp] = useState('');
+  const [doorOpen, setDoorOpen] = useState<'' | 'true' | 'false'>('');
+  const [deviceResult, setDeviceResult] = useState('');
   const [message, setMessage] = useState('');
   const [messageIsError, setMessageIsError] = useState(false);
   const refreshId = useRef(0);
@@ -177,6 +184,26 @@ export default function Simulator() {
     finally { clearInterval(timer); setDemoRunning(false); }
   }
 
+  async function sendDeviceEvent() {
+    if (!selected) return;
+    const sensors: { vibration?: number; current?: number; doorOpen?: boolean } = {};
+    if (vibration !== '') sensors.vibration = Number(vibration);
+    if (currentAmp !== '') sensors.current = Number(currentAmp);
+    if (doorOpen !== '') sensors.doorOpen = doorOpen === 'true';
+    const payload = { event: deviceEvent, ...(Object.keys(sensors).length ? { sensors } : {}) };
+    try {
+      const result = await request({ action: 'device-event', washerId: selected, ...payload });
+      setDeviceResult(`POST /api/device/washers/${selected}/event\n${JSON.stringify(payload)}\n→ ${result.device.status} ${JSON.stringify(result.device.body)}`);
+    } catch { /* request already shows the error */ }
+  }
+
+  async function processReminders() {
+    try {
+      const result = await request({ action: 'process-reminders' });
+      showMessage(`완료 알림 ${result.completions.sent}건, 수거 알림 ${result.reminders.sent}건을 전송했습니다.`);
+    } catch { /* request already shows the error */ }
+  }
+
   function lock() {
     refreshId.current++;
     sessionStorage.removeItem('admin-pass');
@@ -248,6 +275,31 @@ export default function Simulator() {
           <button className="button small secondary" disabled={busy || demoRunning || !canPickup} onClick={() => void runAction({ action: 'event', washerId: selected, event: 'PICKUP' }, '수거를 완료해 세탁기를 비웠습니다.')}>수거 완료</button>
           <button className="button small secondary" disabled={busy || demoRunning || !washer || washer.state === 'IDLE'} onClick={() => void runAction({ action: 'event', washerId: selected, event: 'RESET' }, '세탁기를 초기화했습니다.')}>초기화</button>
         </div>
+      </section>
+
+      <section className="section">
+        <h2>4. 기기 이벤트 직접 전송</h2>
+        <p className="lead simulator-help">ESP32가 보낼 요청을 그대로 만들어 기기 API로 전송합니다. 센서 값은 비워두면 보내지 않습니다.</p>
+        <select className="input" aria-label="기기 이벤트" value={deviceEvent} onChange={(event) => setDeviceEvent(event.target.value as (typeof deviceEvents)[number])} disabled={demoRunning}>
+          {deviceEvents.map((item) => <option key={item} value={item}>{item}</option>)}
+        </select>
+        <div className="simulator-user-create">
+          <input className="input" aria-label="진동" placeholder="진동 (정수)" inputMode="numeric" value={vibration} onChange={(event) => setVibration(event.target.value)} />
+          <input className="input" aria-label="전류" placeholder="전류 (A)" inputMode="decimal" value={currentAmp} onChange={(event) => setCurrentAmp(event.target.value)} />
+          <select className="input" aria-label="문 상태" value={doorOpen} onChange={(event) => setDoorOpen(event.target.value as '' | 'true' | 'false')}>
+            <option value="">문: 보내지 않음</option>
+            <option value="false">문: 닫힘</option>
+            <option value="true">문: 열림</option>
+          </select>
+        </div>
+        <button className="button" disabled={busy || demoRunning || !selected} onClick={() => void sendDeviceEvent()}>이벤트 전송</button>
+        {deviceResult && <pre className="notice" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{deviceResult}</pre>}
+      </section>
+
+      <section className="section">
+        <h2>5. 알림 즉시 처리</h2>
+        <p className="lead simulator-help">예약된 수거 알림은 5분 주기 스케줄러가 처리합니다. 데모 중에는 여기서 바로 실행할 수 있습니다.</p>
+        <button className="button secondary" disabled={busy || demoRunning} onClick={() => void processReminders()}>대기 중인 알림 처리</button>
       </section>
     </>}
 

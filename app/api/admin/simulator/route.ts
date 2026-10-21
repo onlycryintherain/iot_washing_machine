@@ -3,9 +3,10 @@ import { z } from 'zod';
 import { asc, eq } from 'drizzle-orm';
 import { getDb } from '@/lib/db';
 import { subscriptions, washers, users } from '@/lib/db/schema';
-import { processWasherEvent, reserveWasher } from '@/lib/washer/service';
+import { processPendingCompletionNotifications, processPickupReminders, processWasherEvent, reserveWasher } from '@/lib/washer/service';
 import { createUser } from '@/lib/auth/identity';
 import { apiError, requireAdmin, unauthorized } from '@/lib/http';
+import { deviceEventSchema } from '@/lib/validation';
 import { SIMULATION_DURATION_SECONDS } from '@/lib/washer/simulation';
 export const maxDuration = 30;
 
@@ -29,6 +30,8 @@ const schema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('reserve'), washerId: z.string(), userId: z.string() }),
   z.object({ action: z.literal('simulate'), washerId: z.string() }),
   z.object({ action: z.literal('event'), washerId: z.string(), event: z.enum(['PICKUP', 'RESET']) }),
+  z.object({ action: z.literal('device-event'), washerId: z.string() }).extend(deviceEventSchema.pick({ event: true, sensors: true }).shape),
+  z.object({ action: z.literal('process-reminders') }),
   z.object({ action: z.literal('demo-user'), nickname: z.string().trim().min(1).max(24) }),
 ]);
 
@@ -36,6 +39,19 @@ export async function POST(request: Request) {
   if (!requireAdmin(request)) return unauthorized('인증이 필요합니다.');
   try {
     const data = schema.parse(await request.json());
+    if (data.action === 'process-reminders') return NextResponse.json({ completions: await processPendingCompletionNotifications(), reminders: await processPickupReminders() });
+    if (data.action === 'device-event') {
+      // Goes through the public device endpoint so the simulator exercises the same auth, validation and payload shape as the ESP32.
+      const secret = process.env.DEVICE_API_SECRET;
+      if (!secret) throw new Error('DEVICE_API_SECRET is not configured');
+      const response = await fetch(new URL(`/api/device/washers/${encodeURIComponent(data.washerId)}/event`, request.url), {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', authorization: `Bearer ${secret}` },
+        body: JSON.stringify({ event: data.event, sensors: data.sensors }),
+      });
+      const body = await response.json().catch(() => null);
+      return NextResponse.json({ device: { status: response.status, body }, washer: response.ok ? body?.washer : undefined });
+    }
     if (data.action === 'demo-user') return NextResponse.json({ user: (await createUser(data.nickname)).user });
     if (data.action === 'reserve') return NextResponse.json({ washer: await reserveWasher(data.washerId, data.userId) });
     if (data.action === 'event') return NextResponse.json({ washer: await processWasherEvent(data.washerId, data.event) });
