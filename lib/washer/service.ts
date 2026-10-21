@@ -3,9 +3,10 @@ import { randomUUID } from 'node:crypto';
 import { getDb } from '@/lib/db';
 import { events, reminderLog, sessions, washers } from '@/lib/db/schema';
 import { transition, type WasherEvent, type WasherState } from './state-machine';
+import { HttpError } from '@/lib/errors';
 import { sendUserPush } from '@/lib/push/service';
 export async function processWasherEvent(washerId:string,event:WasherEvent,sensors?:{vibration?:number;current?:number;doorOpen?:boolean},timestamp=new Date()) {
-  const db=getDb(); const [washer]=await db.select().from(washers).where(eq(washers.id,washerId)).limit(1); if(!washer)throw new Error('Washer not found');
+  const db=getDb(); const [washer]=await db.select().from(washers).where(eq(washers.id,washerId)).limit(1); if(!washer)throw new HttpError(404,'Washer not found');
   const next=transition(washer.state as WasherState,event);
   const changes:Partial<typeof washers.$inferInsert>={state:next,updatedAt:timestamp};
   if(event==='START'){changes.startedAt=timestamp;changes.lastActivityAt=timestamp;}
@@ -18,7 +19,7 @@ export async function processWasherEvent(washerId:string,event:WasherEvent,senso
   if(sensors?.vibration!==undefined)changes.vibration=sensors.vibration;
   if(sensors?.current!==undefined)changes.current=sensors.current;
   const [updated]=await db.update(washers).set(changes).where(and(eq(washers.id,washerId),eq(washers.state,washer.state))).returning();
-  if(!updated)throw new Error('Washer state changed; refresh and retry');
+  if(!updated)throw new HttpError(409,'Washer state changed; refresh and retry');
   await db.insert(events).values({id:randomUUID(),washerId,type:event,vibration:sensors?.vibration,current:sensors?.current,doorOpen:sensors?.doorOpen??(event==='DOOR_OPEN'?true:undefined),createdAt:timestamp});
   if(event==='START')await db.update(sessions).set({status:'RUNNING',startedAt:timestamp,updatedAt:timestamp}).where(and(eq(sessions.washerId,washerId),eq(sessions.status,'RESERVED')));
   if(event==='RESERVE'&&washer.currentUserId){await db.update(sessions).set({status:'RESERVED',updatedAt:timestamp}).where(and(eq(sessions.washerId,washerId),eq(sessions.userId,washer.currentUserId),isNull(sessions.finishedAt)));}
@@ -54,12 +55,12 @@ export async function processPendingCompletionNotifications(now=new Date()){
 }
 export async function reserveWasher(washerId:string,userId:string){
  const db=getDb(), now=new Date(), next=transition('IDLE','RESERVE'); const [updated]=await db.update(washers).set({state:next,currentUserId:userId,reservedAt:now,updatedAt:now,pushSentAt:null}).where(and(eq(washers.id,washerId),eq(washers.state,'IDLE'))).returning();
- if(!updated)throw new Error('방금 다른 사용자가 이 세탁기를 등록했습니다.');
+ if(!updated)throw new HttpError(409,'방금 다른 사용자가 이 세탁기를 등록했습니다.');
  await db.insert(sessions).values({id:randomUUID(),washerId,userId,status:'RESERVED',reservedAt:now});await db.insert(events).values({id:randomUUID(),washerId,type:'RESERVE',createdAt:now});return updated;
 }
 export async function cancelReservation(washerId:string,userId:string){
  const db=getDb(), now=new Date(),next=transition('RESERVED','RESET');const [updated]=await db.update(washers).set({state:next,currentUserId:null,reservedAt:null,updatedAt:now}).where(and(eq(washers.id,washerId),eq(washers.state,'RESERVED'),eq(washers.currentUserId,userId))).returning();
- if(!updated)throw new Error('등록을 취소할 수 없습니다.');await db.insert(events).values({id:randomUUID(),washerId,type:'CANCEL_RESERVATION',createdAt:now});await db.update(sessions).set({status:'CANCELLED',updatedAt:now}).where(and(eq(sessions.washerId,washerId),eq(sessions.userId,userId),eq(sessions.status,'RESERVED')));return updated;
+ if(!updated)throw new HttpError(409,'등록을 취소할 수 없습니다.');await db.insert(events).values({id:randomUUID(),washerId,type:'CANCEL_RESERVATION',createdAt:now});await db.update(sessions).set({status:'CANCELLED',updatedAt:now}).where(and(eq(sessions.washerId,washerId),eq(sessions.userId,userId),eq(sessions.status,'RESERVED')));return updated;
 }
 export async function processPickupReminders(now=new Date()){
  const db=getDb(), active=await db.select().from(sessions).where(and(eq(sessions.status,'FINISHED'),gte(sessions.finishedAt,new Date(now.getTime()-60*60_000))));let sent=0;

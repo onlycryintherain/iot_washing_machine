@@ -3,7 +3,7 @@ import { eq, inArray } from 'drizzle-orm';
 import { z } from 'zod';
 import { getDb } from '@/lib/db';
 import { reminderLog, sessions, subscriptions, users, washers } from '@/lib/db/schema';
-import { apiError } from '@/lib/http';
+import { apiError, requireAdmin, unauthorized } from '@/lib/http';
 
 const profileSchema = z.object({
   nickname: z.string().trim().min(1).max(60),
@@ -11,9 +11,7 @@ const profileSchema = z.object({
 });
 
 export async function PATCH(request: Request, context: { params: Promise<{ userId: string }> }) {
-  if (!process.env.ADMIN_PASSWORD || request.headers.get('x-admin-password') !== process.env.ADMIN_PASSWORD) {
-    return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 });
-  }
+  if (!requireAdmin(request)) return unauthorized('인증이 필요합니다.');
   try {
     const { userId } = await context.params;
     const profile = profileSchema.parse(await request.json());
@@ -27,9 +25,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ userI
 }
 
 export async function DELETE(request: Request, context: { params: Promise<{ userId: string }> }) {
-  if (!process.env.ADMIN_PASSWORD || request.headers.get('x-admin-password') !== process.env.ADMIN_PASSWORD) {
-    return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 });
-  }
+  if (!requireAdmin(request)) return unauthorized('인증이 필요합니다.');
   try {
     const { userId } = await context.params;
     const db = getDb();

@@ -5,13 +5,12 @@ import { getDb } from '@/lib/db';
 import { subscriptions, washers, users } from '@/lib/db/schema';
 import { processWasherEvent, reserveWasher } from '@/lib/washer/service';
 import { createUser } from '@/lib/auth/identity';
-import { apiError } from '@/lib/http';
+import { apiError, requireAdmin, unauthorized } from '@/lib/http';
 import { SIMULATION_DURATION_SECONDS } from '@/lib/washer/simulation';
-function authorized(request: Request) { return !!process.env.ADMIN_PASSWORD && request.headers.get('x-admin-password') === process.env.ADMIN_PASSWORD; }
 export const maxDuration = 30;
 
 export async function GET(request: Request) {
-  if (!authorized(request)) return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 });
+  if (!requireAdmin(request)) return unauthorized('인증이 필요합니다.');
   try {
     const db = getDb();
     const [machineList, userList, pushList] = await Promise.all([
@@ -34,7 +33,7 @@ const schema = z.discriminatedUnion('action', [
 ]);
 
 export async function POST(request: Request) {
-  if (!authorized(request)) return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 });
+  if (!requireAdmin(request)) return unauthorized('인증이 필요합니다.');
   try {
     const data = schema.parse(await request.json());
     if (data.action === 'demo-user') return NextResponse.json({ user: (await createUser(data.nickname)).user });
