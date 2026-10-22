@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Onboarding } from '@/components/onboarding';
 import { InstallGate, useInstallPrompt } from '@/components/install-prompt';
+import { ChatAssistant } from '@/components/chat-assistant';
 import { PushRegistration } from '@/components/push-registration';
 import { AndroidNotificationSetup, shouldShowAndroidNotificationSetup } from '@/components/android-notification-setup';
 
@@ -128,5 +129,6 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       {children}
       {!admin && <PushRegistration visible={path === '/'} />}
     </main>
+    {!admin && <ChatAssistant />}
   </>;
 }
