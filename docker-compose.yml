@@ -24,21 +24,10 @@ services:
     environment:
       DATABASE_URL: postgresql://laundry:${POSTGRES_PASSWORD}@db:5432/laundry
       ENABLE_SCHEDULER: "true"
-    # Only the local Cloudflare Tunnel connector needs to reach the app.
+    # Loopback only by default. Set APP_BIND to the server's LAN IP when the Cloudflare Tunnel
+    # connectors run in other network namespaces (e.g. k3s pods) and reach the app by that IP.
     ports:
-      - "127.0.0.1:3000:3000"
-
-  # Optional public HTTPS entry. Enable with COMPOSE_PROFILES=tunnel and TUNNEL_TOKEN in .env.
-  # The tunnel's public hostname must point to http://app:3000 (set in the Cloudflare Zero Trust dashboard).
-  tunnel:
-    image: cloudflare/cloudflared:latest
-    profiles: ["tunnel"]
-    restart: unless-stopped
-    command: tunnel --no-autoupdate run
-    environment:
-      TUNNEL_TOKEN: ${TUNNEL_TOKEN:-}
-    depends_on:
-      - app
+      - "${APP_BIND:-127.0.0.1}:3000:3000"
 
   backup:
     image: postgres:17-alpine
