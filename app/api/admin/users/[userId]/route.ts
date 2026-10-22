@@ -3,6 +3,7 @@ import { eq, inArray } from 'drizzle-orm';
 import { z } from 'zod';
 import { getDb } from '@/lib/db';
 import { reminderLog, sessions, subscriptions, users, washers } from '@/lib/db/schema';
+import { errorCode } from '@/lib/errors';
 import { apiError, requireAdmin, unauthorized } from '@/lib/http';
 
 const profileSchema = z.object({
@@ -44,7 +45,7 @@ export async function DELETE(request: Request, context: { params: Promise<{ user
     if (!deleted.length) return NextResponse.json({ error: '사용자를 찾을 수 없습니다.' }, { status: 404 });
     return NextResponse.json({ deleted: true });
   } catch (error) {
-    if (typeof error === 'object' && error !== null && 'code' in error && error.code === '23503') {
+    if (errorCode(error) === '23503') {
       return NextResponse.json({ error: '현재 사용 중인 세탁기가 있어 삭제할 수 없습니다. 상태를 갱신한 뒤 다시 시도해주세요.' }, { status: 409 });
     }
     return apiError(error);

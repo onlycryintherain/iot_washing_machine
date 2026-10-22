@@ -1,7 +1,7 @@
 import { timingSafeEqual } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
-import { HttpError } from '@/lib/errors';
+import { HttpError, describeError } from '@/lib/errors';
 
 
 export function apiError(error: unknown) {
@@ -11,7 +11,7 @@ export function apiError(error: unknown) {
     console.error(error.message);
     return NextResponse.json({ error: '서버 설정이 완료되지 않았습니다.' }, { status: 503 });
   }
-  console.error('Unhandled API error', error instanceof Error ? error.message : 'Unknown error');
+  console.error('Unhandled API error', describeError(error));
   return NextResponse.json({ error: '서버 오류가 발생했습니다.' }, { status: 500 });
 }
 

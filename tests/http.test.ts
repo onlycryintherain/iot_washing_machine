@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { HttpError } from '@/lib/errors';
+import { HttpError, describeError, errorCode } from '@/lib/errors';
 import { apiError, requireAdmin, requireBearer, safeEqual } from '@/lib/http';
 
 const request = (headers: Record<string, string>) => new Request('http://localhost/api', { headers });
@@ -65,5 +65,23 @@ describe('apiError', () => {
   it('reports missing configuration as 503', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     expect(apiError(new Error('DATABASE_URL is not configured')).status).toBe(503);
+  });
+});
+
+describe('database error helpers', () => {
+  const wrapped = Object.assign(new Error('Failed query: insert into users params: 20240001,secret-hash'), {
+    cause: Object.assign(new Error('duplicate key value violates unique constraint "users_user_code_unique"'), { code: '23505' }),
+  });
+
+  it('finds the PostgreSQL code on a wrapped driver error', () => {
+    expect(errorCode(wrapped)).toBe('23505');
+    expect(errorCode(new Error('plain'))).toBeUndefined();
+    expect(errorCode('text')).toBeUndefined();
+  });
+  it('describes the root cause without query parameters', () => {
+    const text = describeError(wrapped);
+    expect(text).toContain('[23505]');
+    expect(text).toContain('duplicate key');
+    expect(text).not.toContain('secret-hash');
   });
 });
