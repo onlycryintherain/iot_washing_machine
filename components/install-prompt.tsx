@@ -12,6 +12,10 @@ type BeforeInstallPromptEvent = Event & {
 
 type Platform = 'ios' | 'android' | 'other';
 
+declare global {
+  interface Window { __installPrompt?: Event | null }
+}
+
 function isStandalone() {
   return window.matchMedia('(display-mode: standalone)').matches ||
     ('standalone' in navigator && (navigator as Navigator & { standalone?: boolean }).standalone === true);
@@ -37,12 +41,16 @@ export function useInstallPrompt() {
     setPlatform(getPlatform());
     setReady(true);
 
+    if (window.__installPrompt && getPlatform() !== 'other') setPromptEvent(window.__installPrompt as BeforeInstallPromptEvent);
+
     const onBeforeInstallPrompt = (event: Event) => {
       if (getPlatform() === 'other') return;
       event.preventDefault();
+      window.__installPrompt = event;
       setPromptEvent(event as BeforeInstallPromptEvent);
     };
     const onAppInstalled = () => {
+      window.__installPrompt = null;
       setJustInstalled(true);
       setPromptEvent(null);
     };
@@ -69,6 +77,7 @@ export function useInstallPrompt() {
     } catch {
       // The browser may invalidate a deferred prompt; show its menu instructions instead.
     } finally {
+      window.__installPrompt = null;
       setPromptEvent(null);
       setBusy(false);
     }
@@ -100,11 +109,15 @@ export function InstallGate({ prompt }: { prompt: ReturnType<typeof useInstallPr
 
       {prompt.platform === 'android' && !prompt.canPrompt && !prompt.justInstalled && <div className="install-gate-instructions">
         <strong>Android 설치 방법</strong>
-        <p>Chrome의 메뉴(⋮)에서 ‘앱 설치’ 또는 ‘홈 화면에 추가’를 선택해주세요.</p>
+        <ol>
+          <li>Chrome 메뉴(⋮)를 열어요.</li>
+          <li>‘앱 설치’를 눌러요. 메뉴에 ‘홈 화면에 추가’만 보이면 그걸 누른 뒤 ‘설치’를 골라요.</li>
+          <li>‘바로가기 만들기’는 고르지 마세요. 앱이 아니라 바로가기로 설치돼요.</li>
+        </ol>
       </div>}
 
       {prompt.justInstalled && <p className="install-gate-success" role="status">설치를 마쳤어요. 홈 화면 또는 앱 목록에서 ‘세탁실’을 열어주세요.</p>}
-      <p className="install-gate-footer">이미 설치했다면 브라우저 탭을 닫고 앱 아이콘으로 다시 열어주세요.</p>
+      <p className="install-gate-footer">이미 설치했다면 브라우저 탭을 닫고 앱 아이콘으로 다시 열어주세요.{prompt.platform === 'android' && ' 아이콘으로 열었는데 이 화면이 보이면 앱이 아니라 바로가기로 설치된 거예요. 바로가기를 지우고 ‘앱 설치’로 다시 설치해주세요.'}</p>
     </section>
   </div>;
 }

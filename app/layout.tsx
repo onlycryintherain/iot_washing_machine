@@ -1,4 +1,6 @@
 import type { Metadata,Viewport } from 'next';import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';import './globals.css';import { AppFrame } from '@/components/app-frame';
 export const metadata:Metadata={title:'기숙사 세탁실',description:'기숙사 공용 세탁기 상태를 확인하고, 세탁이 끝나면 알림을 받아요.',manifest:'/manifest.webmanifest',icons:{icon:[{url:'/icons/favicon-32.png',sizes:'32x32',type:'image/png'},{url:'/icons/laundry-centered-192.png',sizes:'192x192',type:'image/png'}],apple:'/apple-touch-icon-centered.png'},appleWebApp:{capable:true,statusBarStyle:'default',title:'세탁실'}};
-export const viewport:Viewport={themeColor:'#f7f7f4',width:'device-width',initialScale:1,maximumScale:1,userScalable:false,viewportFit:'cover'};
-export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="ko"><body><AppFrame>{children}</AppFrame></body></html>}
+export const viewport:Viewport={themeColor:'#ffffff',width:'device-width',initialScale:1,maximumScale:1,userScalable:false,viewportFit:'cover'};
+// beforeinstallprompt fires once, often before React hydrates, so stash it for the install button.
+const installPromptCapture="window.addEventListener('beforeinstallprompt',function(e){if(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){e.preventDefault();window.__installPrompt=e;}});window.addEventListener('appinstalled',function(){window.__installPrompt=null;});";
+export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="ko"><head><script dangerouslySetInnerHTML={{__html:installPromptCapture}} /></head><body><AppFrame>{children}</AppFrame></body></html>}

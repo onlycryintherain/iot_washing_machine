@@ -6,11 +6,55 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#f7f7f4",
-  "theme_color": "#f7f7f4",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
   "icons": [
-    { "src": "/icons/laundry-centered-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/icons/laundry-centered-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/icons/laundry-centered-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/icons/laundry-centered-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/laundry-centered-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/laundry-centered-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "lang": "ko",
+  "orientation": "portrait",
+  "categories": [
+    "utilities",
+    "lifestyle"
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/home.png",
+      "sizes": "780x1688",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "세탁실 현황을 한눈에"
+    },
+    {
+      "src": "/screenshots/detail.png",
+      "sizes": "780x1688",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "세탁이 끝나면 알림으로 알려줘요"
+    },
+    {
+      "src": "/screenshots/chat.png",
+      "sizes": "780x1688",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "궁금한 건 도우미에게 물어보세요"
+    }
   ]
 }
