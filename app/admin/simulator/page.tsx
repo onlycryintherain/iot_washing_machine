@@ -20,7 +20,7 @@ type Washer = {
   doorOpen: boolean;
   pushSentAt: string | null;
 };
-type User = { id: string; nickname: string; studentId: string | null; hasPush: boolean };
+type User = { id: string; ids: string[]; nickname: string; studentId: string | null; hasPush: boolean };
 type SimulatorData = { washers: Washer[]; users: User[] };
 
 const deviceEvents = ['START', 'ACTIVITY', 'NO_ACTIVITY', 'RESUME', 'FINISH', 'DOOR_OPEN', 'PICKUP', 'RESET'] as const;
@@ -136,7 +136,7 @@ export default function Simulator() {
       if (!response.ok) throw new Error(result.error || '요청에 실패했습니다.');
       refreshId.current++;
       if (result.washer) setWashers((current) => current.map((washer) => washer.id === result.washer.id ? result.washer : washer));
-      if (result.user) setUsers((current) => [...current, { ...result.user, studentId: null, hasPush: false }]);
+      if (result.user) setUsers((current) => [...current, { ...result.user, ids: [result.user.id], studentId: null, hasPush: false }]);
       void load(password, true);
       return result;
     } catch (cause) {
@@ -218,7 +218,7 @@ export default function Simulator() {
   const washer = washers.find((item) => item.id === selected);
   const canReserve = washer?.state === 'IDLE';
   const canPickup = washer?.state === 'FINISHED' || washer?.state === 'WAITING_FOR_PICKUP';
-  const currentUser = users.find((item) => item.id === washer?.currentUserId);
+  const currentUser = users.find((item) => !!washer?.currentUserId && item.ids.includes(washer.currentUserId));
 
   return <div className="admin-shell admin-simulator-shell">
     <div className="topline"><Link className="back" href="/admin"><ArrowLeft /></Link><BrandLogo /></div>

@@ -17,7 +17,7 @@ type Item = {
   pushSentAt: string | null;
   elapsedMinutes: number | null;
 };
-type Person = { id: string; nickname: string; studentId: string | null; createdAt: string; hasPush: boolean; pushDevices: number };
+type Person = { id: string; ids: string[]; nickname: string; studentId: string | null; createdAt: string; hasPush: boolean; pushDevices: number; deviceCount: number };
 const stateLabel: Record<string, string> = {
   IDLE: '사용 가능', RESERVED: '시작 대기', RUNNING: '세탁 중', MAYBE_FINISHED: '종료 확인 중',
   FINISHED: '세탁 완료', WAITING_FOR_PICKUP: '수거 대기',
@@ -185,7 +185,7 @@ export default function Admin() {
       </div>
       <div className="section-head admin-status-heading"><div><h2>세탁기 상태</h2><span className="admin-live-label">화면이 열려 있는 동안 자동 갱신</span></div><button className="button small secondary" disabled={busy} onClick={() => void load(password)}>{busy ? '갱신 중…' : '새로고침'}</button></div>
       <div className="admin-grid">{items.map((washer) => {
-        const person = people.find((item) => item.id === washer.currentUserId);
+        const person = people.find((item) => !!washer.currentUserId && item.ids.includes(washer.currentUserId));
         return <article className="admin-card admin-washer-card" key={washer.id}>
           <div className="admin-washer-heading"><h3>{washer.name}</h3><span className={`tag ${washer.state === 'IDLE' || washer.state === 'FINISHED' ? 'done' : 'busy'}`}>{stateLabel[washer.state] ?? washer.state}</span></div>
           <p className="admin-washer-owner">{person ? `${person.nickname} 사용 중` : '사용자 없음'}</p>
@@ -207,10 +207,10 @@ export default function Admin() {
         {userError && <p className="error" role="alert">{userError}</p>}
         <div className="admin-table-scroll"><table className="admin-table admin-users-table"><thead><tr><th>사용자</th><th>학번</th><th>현재 세탁기</th><th>알림</th><th>등록일</th><th>관리</th></tr></thead><tbody>
           {visiblePeople.map((person) => {
-            const activeWasher = items.find((washer) => washer.currentUserId === person.id);
+            const activeWasher = items.find((washer) => !!washer.currentUserId && person.ids.includes(washer.currentUserId));
             const editing = editingUserId === person.id;
             return <tr key={person.id}>
-              <td>{editing ? <input className="input admin-table-input" aria-label={`${person.nickname} 이름`} maxLength={60} value={draftName} onChange={(event) => setDraftName(event.target.value)} /> : <strong>{person.nickname}</strong>}</td>
+              <td>{editing ? <input className="input admin-table-input" aria-label={`${person.nickname} 이름`} maxLength={60} value={draftName} onChange={(event) => setDraftName(event.target.value)} /> : <><strong>{person.nickname}</strong>{person.deviceCount > 1 && <small className="admin-delete-hint">등록 {person.deviceCount}회</small>}</>}</td>
               <td>{editing ? <input className="input admin-table-input" aria-label={`${person.nickname} 학번`} placeholder="학번 없음" maxLength={32} value={draftStudentId} onChange={(event) => setDraftStudentId(event.target.value)} /> : person.studentId ?? <span className="muted">학번 없음</span>}</td>
               <td>{activeWasher ? <span className="admin-active-washer">{activeWasher.name} · {stateLabel[activeWasher.state] ?? activeWasher.state}</span> : <span className="muted">—</span>}</td>
               <td><span className={person.hasPush ? 'admin-push connected' : 'admin-push'}>{person.hasPush ? `${person.pushDevices}대 연결` : '미연결'}</span></td>
@@ -227,7 +227,7 @@ export default function Admin() {
       <section className="admin-delete-dialog" role="dialog" aria-modal="true" aria-labelledby="delete-user-title" onClick={(event) => event.stopPropagation()} onKeyDown={(event) => { if (event.key === 'Escape' && !deletingUser) setDeleteTarget(null); }}>
         <h2 id="delete-user-title">사용자를 삭제할까요?</h2>
         <p><strong>{deleteTarget.nickname}</strong>{deleteTarget.studentId ? ` · 학번 ${deleteTarget.studentId}` : ' · 학번 없음'}</p>
-        <p className="lead">이 사용자의 세탁 기록과 알림 연결도 함께 삭제됩니다. 이 작업은 되돌릴 수 없습니다.</p>
+        <p className="lead">이 사용자의 세탁 기록과 알림 연결도 함께 삭제됩니다. 같은 이름과 학번으로 등록된 모든 기록이 포함되며, 이 작업은 되돌릴 수 없습니다.</p>
         {deleteError && <p className="error" role="alert">{deleteError}</p>}
         <div className="admin-dialog-actions"><button className="button secondary" type="button" autoFocus disabled={deletingUser} onClick={() => setDeleteTarget(null)}>취소</button><button className="button danger" type="button" disabled={deletingUser} onClick={() => void deleteUser()}>{deletingUser ? '삭제 중…' : '사용자 삭제'}</button></div>
       </section>

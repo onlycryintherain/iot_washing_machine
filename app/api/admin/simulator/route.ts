@@ -5,6 +5,7 @@ import { getDb } from '@/lib/db';
 import { subscriptions, washers, users } from '@/lib/db/schema';
 import { processEndingSoonNotifications, processPendingCompletionNotifications, processPickupReminders, processWasherEvent, reserveWasher } from '@/lib/washer/service';
 import { createUser } from '@/lib/auth/identity';
+import { groupPeople } from '@/lib/admin/people';
 import { apiError, requireAdmin, unauthorized } from '@/lib/http';
 import { deviceEventSchema } from '@/lib/validation';
 import { SIMULATION_DURATION_SECONDS } from '@/lib/washer/simulation';
@@ -22,7 +23,7 @@ export async function GET(request: Request) {
     const deviceCounts = new Map<string, number>();
     for (const item of pushList) deviceCounts.set(item.userId, (deviceCounts.get(item.userId) ?? 0) + 1);
     const withElapsed = machineList.map((washer) => ({ ...washer, elapsedMinutes: washer.startedAt && ['RUNNING', 'MAYBE_FINISHED'].includes(washer.state) ? Math.max(0, Math.floor((Date.now() - washer.startedAt.getTime()) / 60000)) : null }));
-    return NextResponse.json({ washers: withElapsed, users: userList.map((item) => ({ ...item, hasPush: (deviceCounts.get(item.id) ?? 0) > 0, pushDevices: deviceCounts.get(item.id) ?? 0 })) });
+    return NextResponse.json({ washers: withElapsed, users: groupPeople(userList, deviceCounts) });
   } catch (error) { return apiError(error); }
 }
 
