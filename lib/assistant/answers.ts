@@ -119,3 +119,40 @@ export const helpReply: AssistantReply = {
 export const unknownReply: AssistantReply = {
   text: '아직 그 질문은 이해하지 못해요. 아래 추천 질문 중에서 골라 주세요.',
 };
+
+// Related questions offered after an answer, most useful first.
+const followUps: Record<AssistantIntent, AssistantIntent[]> = {
+  availability: ['best_time', 'my_status', 'help'],
+  my_status: ['availability', 'best_time', 'help'],
+  best_time: ['availability', 'my_status', 'help'],
+  help: ['availability', 'my_status', 'best_time'],
+};
+
+export function chipsAfter(intent: AssistantIntent | null) {
+  const order = intent ? followUps[intent] : suggestedQuestions.map((item) => item.intent);
+  return order.flatMap((next) => suggestedQuestions.filter((item) => item.intent === next));
+}
+
+export type ReplyItem = { title?: string; body: string };
+export type ReplyBlock = { kind: 'p'; text: string } | { kind: 'ul' | 'ol'; items: ReplyItem[] };
+
+// Turns the plain-text reply into paragraphs and lists so the UI can lay it out instead of showing raw line breaks.
+export function splitReply(text: string): ReplyBlock[] {
+  const blocks: ReplyBlock[] = [];
+  for (const line of text.split('\n').map((value) => value.trim()).filter(Boolean)) {
+    const bullet = /^•\s*(.+)$/.exec(line);
+    const numbered = /^\d+\.\s*(.+)$/.exec(line);
+    const content = bullet?.[1] ?? numbered?.[1];
+    if (content === undefined) {
+      blocks.push({ kind: 'p', text: line });
+      continue;
+    }
+    const kind = bullet ? 'ul' : 'ol';
+    const separator = content.indexOf(': ');
+    const item: ReplyItem = separator > 0 ? { title: content.slice(0, separator), body: content.slice(separator + 2) } : { body: content };
+    const last = blocks[blocks.length - 1];
+    if (last && last.kind === kind) last.items.push(item);
+    else blocks.push({ kind, items: [item] });
+  }
+  return blocks;
+}

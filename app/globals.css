@@ -288,11 +288,26 @@ body:has(.action-stack) .chat-fab { bottom: calc(112px + env(safe-area-inset-bot
 .chat-close { display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 50%; background: none; color: var(--grey-600); cursor: pointer; }
 .chat-close:active { background: var(--grey-100); }
 .chat-log { flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 8px 24px 16px; overflow-y: auto; }
-.chat-bubble { max-width: 86%; padding: 12px 14px; border-radius: 18px; background: var(--grey-100); font-size: 15px; line-height: 1.6; }
-.chat-bubble p { white-space: pre-line; }
-.chat-bubble.bot { align-self: flex-start; border-bottom-left-radius: 6px; }
-.chat-bubble.user { align-self: flex-end; border-bottom-right-radius: 6px; background: var(--blue-500); color: #fff; }
-.chat-link { display: inline-block; margin-top: 8px; font-size: 14px; font-weight: 600; color: var(--blue-600); text-decoration: none; }
+.chat-bubble { max-width: 88%; padding: 12px 14px; border-radius: 14px; background: var(--grey-200); font-size: 15px; line-height: 1.6; }
+.chat-bubble p + p, .chat-bubble p + ul, .chat-bubble p + ol, .chat-bubble ul + p, .chat-bubble ol + p { margin-top: 8px; }
+.chat-bubble.bot { align-self: flex-start; border-bottom-left-radius: 4px; }
+.chat-bubble.user { align-self: flex-end; border-bottom-right-radius: 4px; background: var(--blue-500); color: #fff; }
+.chat-list, .chat-steps { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.chat-list li { display: grid; gap: 1px; padding: 10px 12px; border-radius: var(--radius-m); background: #fff; }
+.chat-list strong { font-size: 14px; letter-spacing: -0.01em; }
+.chat-list span { font-size: 14px; color: var(--grey-700); }
+.chat-steps { counter-reset: step; }
+.chat-steps li { position: relative; padding-left: 28px; counter-increment: step; }
+.chat-steps li::before {
+  content: counter(step); position: absolute; left: 0; top: 2px; display: grid; place-items: center; width: 20px; height: 20px;
+  border-radius: 50%; background: var(--blue-500); color: #fff; font-size: 12px; font-weight: 700; line-height: 1;
+}
+.chat-link { display: inline-flex; align-items: center; gap: 2px; margin-top: 10px; font-size: 14px; font-weight: 600; color: var(--blue-600); text-decoration: none; }
+.chat-typing { display: flex; align-items: center; gap: 5px; height: 44px; padding: 0 16px; }
+.chat-typing i { width: 7px; height: 7px; border-radius: 50%; background: var(--grey-500); animation: typing-dot 1s var(--ease) infinite; }
+.chat-typing i:nth-child(2) { animation-delay: 0.15s; }
+.chat-typing i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes typing-dot { 0%, 60%, 100% { opacity: 0.35; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-3px); } }
 .chat-suggestions { display: flex; gap: 8px; padding: 8px 24px 12px; overflow-x: auto; scrollbar-width: none; }
 .chat-suggestions::-webkit-scrollbar { display: none; }
 .chat-chip {
@@ -302,9 +317,9 @@ body:has(.action-stack) .chat-fab { bottom: calc(112px + env(safe-area-inset-bot
 .chat-chip:active { background: var(--grey-100); }
 .chat-chip:disabled { opacity: 0.3; }
 .chat-input { display: flex; gap: 8px; padding: 0 24px 16px; }
-.chat-input input { flex: 1; min-width: 0; height: 48px; padding: 0 18px; border: 1px solid var(--grey-200); border-radius: 999px; background: var(--grey-100); font: inherit; font-size: 16px; outline: none; }
+.chat-input input { flex: 1; min-width: 0; height: 48px; padding: 0 16px; border: 1px solid var(--grey-200); border-radius: var(--radius-m); background: var(--grey-100); font: inherit; font-size: 16px; outline: none; }
 .chat-input input:focus { background: #fff; border-color: var(--blue-500); box-shadow: 0 0 0 0.5px var(--blue-500); }
-.chat-input button { display: grid; flex: none; place-items: center; width: 48px; height: 48px; border: 0; border-radius: 50%; background: var(--blue-500); color: #fff; cursor: pointer; }
+.chat-input button { display: grid; flex: none; place-items: center; width: 48px; height: 48px; border: 0; border-radius: var(--radius-m); background: var(--blue-500); color: #fff; cursor: pointer; }
 .chat-input button:disabled { opacity: 0.3; }
 
 /* ---------- Admin ---------- */

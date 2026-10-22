@@ -4,8 +4,10 @@ import {
   answerAvailability,
   answerBestTime,
   answerMyStatus,
+  chipsAfter,
   clockLabel,
   matchIntent,
+  splitReply,
   suggestedQuestions,
   type AssistantWasher,
 } from '@/lib/assistant/answers';
@@ -97,5 +99,37 @@ describe('answerBestTime', () => {
     const starts = Array.from({ length: 12 }, (_, i) => kstHour(12 + (i % 6), i + 1));
     const quiet = answerBestTime(starts, NOW).reply.text.split('\n').find((line) => line.includes('한산한'))!;
     expect(quiet).not.toMatch(/오전 (12|[1-6])시/);
+  });
+});
+
+describe('chipsAfter', () => {
+  it('offers every question before anything was asked', () => {
+    expect(chipsAfter(null).map((chip) => chip.intent)).toEqual(['availability', 'my_status', 'best_time', 'help']);
+  });
+  it('offers related questions and not the one just answered', () => {
+    const after = chipsAfter('availability').map((chip) => chip.intent);
+    expect(after).toEqual(['best_time', 'my_status', 'help']);
+    expect(after).not.toContain('availability');
+  });
+});
+
+describe('splitReply', () => {
+  it('splits a headline and bullet items into a paragraph and a list', () => {
+    const blocks = splitReply('지금 사용할 수 있는 세탁기가 1대 있어요.\n• 1번 세탁기(1층): 지금 바로 사용할 수 있어요\n• 2번 세탁기(1층): 약 24분 뒤에 끝나요');
+    expect(blocks).toEqual([
+      { kind: 'p', text: '지금 사용할 수 있는 세탁기가 1대 있어요.' },
+      { kind: 'ul', items: [
+        { title: '1번 세탁기(1층)', body: '지금 바로 사용할 수 있어요' },
+        { title: '2번 세탁기(1층)', body: '약 24분 뒤에 끝나요' },
+      ] },
+    ]);
+  });
+  it('turns numbered lines into an ordered list', () => {
+    const [intro, steps] = splitReply('사용 방법이에요.\n1. QR을 스캔해요.\n2. 시작 버튼을 눌러요.');
+    expect(intro.kind).toBe('p');
+    expect(steps).toEqual({ kind: 'ol', items: [{ body: 'QR을 스캔해요.' }, { body: '시작 버튼을 눌러요.' }] });
+  });
+  it('keeps plain text as a single paragraph', () => {
+    expect(splitReply('안녕하세요')).toEqual([{ kind: 'p', text: '안녕하세요' }]);
   });
 });

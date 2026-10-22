@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { MessageCircle, Send, X } from 'lucide-react';
-import { suggestedQuestions, type AssistantReply } from '@/lib/assistant/answers';
+import { ChevronRight, MessageCircle, Send, X } from 'lucide-react';
+import { chipsAfter, splitReply, type AssistantIntent, type AssistantReply } from '@/lib/assistant/answers';
 
 type Message = { id: number; from: 'user' | 'bot'; text: string; links?: AssistantReply['links'] };
 
@@ -14,6 +14,7 @@ export function ChatAssistant() {
   const [messages, setMessages] = useState<Message[]>([greeting]);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
+  const [lastIntent, setLastIntent] = useState<AssistantIntent | null>(null);
   const nextId = useRef(1);
   const bottom = useRef<HTMLDivElement>(null);
 
@@ -44,6 +45,7 @@ export function ChatAssistant() {
       });
       if (!response.ok) throw new Error('request failed');
       const data = await response.json();
+      setLastIntent(data.intent ?? null);
       push({ from: 'bot', text: data.reply.text, links: data.reply.links });
     } catch {
       push({ from: 'bot', text: '답변을 가져오지 못했어요. 잠시 후 다시 시도해 주세요.' });
@@ -69,17 +71,21 @@ export function ChatAssistant() {
       </header>
       <div className="chat-log" aria-live="polite">
         {messages.map((message) => <div key={message.id} className={`chat-bubble ${message.from}`}>
-          <p>{message.text}</p>
-          {message.links?.map((link) => <Link key={link.href} className="chat-link" href={link.href} onClick={() => setOpen(false)}>{link.label} →</Link>)}
+          {message.from === 'user' ? <p>{message.text}</p> : splitReply(message.text).map((block, index) => block.kind === 'p'
+            ? <p key={index}>{block.text}</p>
+            : block.kind === 'ul'
+              ? <ul key={index} className="chat-list">{block.items.map((item, i) => <li key={i}>{item.title && <strong>{item.title}</strong>}<span>{item.body}</span></li>)}</ul>
+              : <ol key={index} className="chat-steps">{block.items.map((item, i) => <li key={i}><span>{item.body}</span></li>)}</ol>)}
+          {message.links?.map((link) => <Link key={link.href} className="chat-link" href={link.href} onClick={() => setOpen(false)}>{link.label}<ChevronRight size={14} aria-hidden="true" /></Link>)}
         </div>)}
-        {busy && <div className="chat-bubble bot"><p className="muted">확인하는 중…</p></div>}
+        {busy && <div className="chat-bubble bot chat-typing" role="status" aria-label="확인하는 중"><i /><i /><i /></div>}
         <div ref={bottom} />
       </div>
       <div className="chat-suggestions">
-        {suggestedQuestions.map((item) => <button key={item.intent} type="button" className="chat-chip" disabled={busy} onClick={() => void ask(item.label, { intent: item.intent })}>{item.label}</button>)}
+        {chipsAfter(lastIntent).map((item) => <button key={item.intent} type="button" className="chat-chip" disabled={busy} onClick={() => void ask(item.label, { intent: item.intent })}>{item.label}</button>)}
       </div>
       <form className="chat-input" onSubmit={(event) => { event.preventDefault(); submit(); }}>
-        <input aria-label="질문 입력" placeholder="궁금한 점을 입력하세요" maxLength={200} value={input} onChange={(event) => setInput(event.target.value)} />
+        <input aria-label="질문 입력" placeholder="궁금한 점을 물어보세요" maxLength={200} value={input} onChange={(event) => setInput(event.target.value)} />
         <button type="submit" aria-label="보내기" disabled={busy || !input.trim()}><Send size={18} /></button>
       </form>
     </section>}
