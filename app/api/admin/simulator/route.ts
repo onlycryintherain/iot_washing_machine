@@ -41,10 +41,12 @@ export async function POST(request: Request) {
     const data = schema.parse(await request.json());
     if (data.action === 'process-reminders') return NextResponse.json({ completions: await processPendingCompletionNotifications(), reminders: await processPickupReminders() });
     if (data.action === 'device-event') {
-      // Goes through the public device endpoint so the simulator exercises the same auth, validation and payload shape as the ESP32.
+      // Goes through the device endpoint so the simulator exercises the same auth, validation and payload shape as the ESP32.
+      // Call this server over loopback: request.url reflects the public (proxied, https) origin, which is not reachable as-is.
       const secret = process.env.DEVICE_API_SECRET;
       if (!secret) throw new Error('DEVICE_API_SECRET is not configured');
-      const response = await fetch(new URL(`/api/device/washers/${encodeURIComponent(data.washerId)}/event`, request.url), {
+      const origin = process.env.INTERNAL_BASE_URL ?? `http://127.0.0.1:${process.env.PORT ?? 3000}`;
+      const response = await fetch(new URL(`/api/device/washers/${encodeURIComponent(data.washerId)}/event`, origin), {
         method: 'POST',
         headers: { 'content-type': 'application/json', authorization: `Bearer ${secret}` },
         body: JSON.stringify({ event: data.event, sensors: data.sensors }),
