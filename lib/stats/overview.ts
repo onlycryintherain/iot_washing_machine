@@ -40,10 +40,6 @@ export function summarizeToday(sessions: SessionTimes[], now: number) {
   return { count: today.length, avgMinutes };
 }
 
-export function historyMinutes(session: SessionTimes) {
-  return session.finishedAt ? toDisplayMinutes(session.finishedAt.getTime() - session.startedAt.getTime()) : null;
-}
-
 export const eventLabels: Record<string, string> = {
   RESERVE: '사용 등록',
   CANCEL_RESERVATION: '등록 취소',

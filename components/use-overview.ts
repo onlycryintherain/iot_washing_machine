@@ -6,7 +6,6 @@ export type Overview = {
   today: { count: number; avgMinutes: number | null };
   hourly: number[];
   totalSessions: number;
-  history: { id: string; washerName: string; startedAt: string; minutes: number | null }[];
 };
 
 export function useOverview() {

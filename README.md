@@ -82,7 +82,7 @@ npm run db:clean-demo   # 위 스크립트가 만든 데이터만 삭제
 # 서버 컨테이너에서: docker compose exec app node scripts/seed-demo.mjs [--clean]
 ```
 
-가상 기록은 닉네임이 `[데모]`로 시작하는 사용자에 묶이며 실제 데이터는 건드리지 않습니다. 실제 이용 통계가 아니므로 발표에서 데모 데이터임을 밝히세요.
+가상 기록은 닉네임이 `[데모]`로 시작하는 사용자에 묶이며 실제 데이터는 건드리지 않습니다.
 
 ## Quality checks
 

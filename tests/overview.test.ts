@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { crowdLevel, hourlyCounts, historyMinutes, kstHour, startOfKstDay, summarizeToday } from '@/lib/stats/overview';
+import { crowdLevel, hourlyCounts, kstHour, startOfKstDay, summarizeToday } from '@/lib/stats/overview';
 import { toDisplayMinutes } from '@/lib/washer/simulation';
 
 // 2026-03-02 12:00 UTC is 21:00 in Korea.
@@ -58,8 +58,5 @@ describe('durations', () => {
     expect(toDisplayMinutes(12_000)).toBe(48);
     expect(toDisplayMinutes(6_000)).toBe(24);
     expect(toDisplayMinutes(10)).toBe(1);
-  });
-  it('has no minutes for an unfinished session', () => {
-    expect(historyMinutes({ startedAt: kst(2, 9), finishedAt: null })).toBeNull();
   });
 });

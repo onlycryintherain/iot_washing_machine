@@ -32,23 +32,3 @@ export function CrowdChart({ overview, now = new Date() }: { overview: Overview 
     </>}
   </section>;
 }
-
-function dateLabel(iso: string) {
-  const date = new Date(iso);
-  const day = date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', timeZone: 'Asia/Seoul' });
-  const time = date.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Seoul' });
-  return `${day} ${time}`;
-}
-
-export function HistoryList({ overview }: { overview: Overview | null }) {
-  return <section className="panel" aria-label="내 세탁 기록">
-    <div className="panel-head"><h2>내 세탁 기록</h2></div>
-    {overview && overview.history.length === 0 && <p className="panel-empty">아직 세탁 기록이 없어요. 첫 세탁이 끝나면 여기에 쌓여요.</p>}
-    {overview && overview.history.length > 0 && <ul className="history">
-      {overview.history.map((item) => <li key={item.id}>
-        <span className="history-main"><strong>{item.washerName}</strong><span>{dateLabel(item.startedAt)}</span></span>
-        <span className="history-minutes">{item.minutes != null ? `${item.minutes}분` : '진행 중'}</span>
-      </li>)}
-    </ul>}
-  </section>;
-}

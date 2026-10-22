@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { ScanLine } from 'lucide-react';
 import { useWasherOverview } from '@/components/use-washer-overview';
 import { WasherRow } from '@/components/washer-row';
-import { CrowdChart, HistoryList, TodayTile } from '@/components/overview-cards';
+import { CrowdChart, TodayTile } from '@/components/overview-cards';
 import { useOverview } from '@/components/use-overview';
 import { MyWasherCard } from '@/components/my-washer-card';
 import { BrandLogo } from '@/components/brand-logo';
@@ -35,6 +35,5 @@ export default function Home() {
     </section>
 
     <CrowdChart overview={overview} />
-    <HistoryList overview={overview} />
   </>;
 }

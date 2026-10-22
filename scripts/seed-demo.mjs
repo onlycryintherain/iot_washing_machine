@@ -1,5 +1,5 @@
 // Optional: fills the database with synthetic usage history so the charts look alive in a showcase.
-//   node scripts/seed-demo.mjs          add ~70 demo sessions spread over the last 30 days
+//   node scripts/seed-demo.mjs          add ~70 demo sessions spread over the last 30 days (including today)
 //   node scripts/seed-demo.mjs --clean  remove everything this script created
 // Demo rows belong to a user whose nickname starts with "[데모]"; real data is never touched.
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
@@ -39,11 +39,16 @@ async function main() {
 
     const now = Date.now();
     let inserted = 0;
-    for (let day = 1; day <= 30; day++) {
-      const perDay = 1 + Math.floor(Math.random() * 4);
+    const currentHour = new Date(now + 9 * 3600_000).getUTCHours();
+    for (let day = 0; day <= 30; day++) {
+      const perDay = 1 + Math.floor(Math.random() * (day === 0 ? 3 : 4));
       for (let n = 0; n < perDay; n++) {
+        let hour = pickHour();
+        // Today only gets sessions in hours that already passed.
+        if (day === 0) for (let tries = 0; tries < 30 && hour >= currentHour; tries++) hour = pickHour();
+        if (day === 0 && hour >= currentHour) continue;
         const kstDay = new Date(now - day * 86_400_000 + 9 * 3600_000);
-        const start = Date.UTC(kstDay.getUTCFullYear(), kstDay.getUTCMonth(), kstDay.getUTCDate(), pickHour() - 9, Math.floor(Math.random() * 60));
+        const start = Date.UTC(kstDay.getUTCFullYear(), kstDay.getUTCMonth(), kstDay.getUTCDate(), hour - 9, Math.floor(Math.random() * 60));
         const finish = start + CYCLE_MS + Math.floor((Math.random() - 0.5) * 2000);
         await client.query(
           `INSERT INTO laundry_sessions (id, washer_id, user_id, status, reserved_at, started_at, finished_at, picked_up_at, finished_notification_sent_at, created_at, updated_at)

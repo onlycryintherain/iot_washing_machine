@@ -7,7 +7,7 @@ export async function GET(request: Request) {
   try {
     const user = await userFromRequest(request);
     if (!user) return unauthorized('사용자 정보를 다시 등록해주세요.');
-    return NextResponse.json(await loadOverview(user.id));
+    return NextResponse.json(await loadOverview());
   } catch (error) {
     return apiError(error);
   }
