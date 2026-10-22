@@ -1,19 +1,55 @@
 // Optional: fills the database with synthetic usage history so the charts look alive in a showcase.
-//   node scripts/seed-demo.mjs          add ~70 demo sessions spread over the last 30 days (including today)
+//   node scripts/seed-demo.mjs          add roughly 80 demo sessions spread over the last 30 days (including today)
 //   node scripts/seed-demo.mjs --clean  remove everything this script created
 // Demo rows belong to a user whose nickname starts with "[데모]"; real data is never touched.
+//
+// The history follows the dorm's rules so it reads as realistic: nobody can enter in the morning,
+// the dorm opens at 17:30 on Wednesdays and at 20:20 on every other day (all times Korea time).
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import pg from 'pg';
 
 const NICKNAME = '[데모] 이용 기록';
-// Relative weight of each Korean hour; dorms peak in the evening.
-const weights = [0, 0, 0, 0, 0, 0, 1, 2, 3, 3, 2, 2, 3, 4, 5, 4, 3, 3, 5, 7, 9, 12, 10, 4];
-const CYCLE_MS = 12_000;
+const HOUR = 3_600_000;
+const DAY = 24 * HOUR;
+const KST = 9 * HOUR;
+const h = (hours, minutes = 0) => hours * 60 + minutes;
 
-function pickHour() {
-  let roll = Math.random() * weights.reduce((sum, value) => sum + value, 0);
-  for (let hour = 0; hour < 24; hour++) { roll -= weights[hour]; if (roll < 0) return hour; }
-  return 21;
+// [from, to, weight] in minutes after midnight.
+const WINDOWS = {
+  wednesday: [[h(17, 30), h(18, 30), 3], [h(18, 30), h(20), 4], [h(20), h(21, 30), 6], [h(21, 30), h(22, 45), 3]],
+  other: [[h(20, 20), h(21), 5], [h(21), h(22), 7], [h(22), h(23), 4]],
+};
+const LAST_START = h(23, 10);
+// Sessions per day by weekday (0 = Sunday): busy when students return on Sunday and on Wednesday, quiet when many go home.
+const PER_DAY = { 0: [3, 6], 1: [2, 4], 2: [2, 4], 3: [3, 6], 4: [2, 4], 5: [1, 3], 6: [1, 3] };
+const DISPLAY_CYCLE_MIN = 50; // the app shows a cycle as ~48 minutes; keep a washer busy that long
+const between = (min, max) => min + Math.floor(Math.random() * (max - min + 1));
+
+function pickMinute(windows) {
+  let roll = Math.random() * windows.reduce((sum, [, , weight]) => sum + weight, 0);
+  for (const [from, to, weight] of windows) {
+    roll -= weight;
+    if (roll < 0) return between(from, to - 1);
+  }
+  const [from, to] = windows[windows.length - 1];
+  return between(from, to - 1);
+}
+
+function planDay(weekday, washerIds) {
+  const windows = weekday === 3 ? WINDOWS.wednesday : WINDOWS.other;
+  const [min, max] = PER_DAY[weekday];
+  const starts = Array.from({ length: between(min, max) }, () => pickMinute(windows)).sort((a, b) => a - b);
+  const freeAt = new Map(washerIds.map((id) => [id, 0]));
+  const plan = [];
+  for (let start of starts) {
+    // Two machines only: wait for the first one that is free instead of overlapping a running cycle.
+    const [washerId, free] = [...freeAt].sort((a, b) => a[1] - b[1])[0];
+    start = Math.max(start, free);
+    if (start > LAST_START) continue;
+    freeAt.set(washerId, start + DISPLAY_CYCLE_MIN);
+    plan.push({ washerId, start });
+  }
+  return plan;
 }
 
 async function main() {
@@ -31,29 +67,28 @@ async function main() {
     }
     if (process.argv.includes('--clean')) return;
 
-    const washers = (await client.query('SELECT id FROM washers ORDER BY id')).rows.map((row) => row.id);
-    if (!washers.length) throw new Error('No washers found. Run the migration first.');
+    const washerIds = (await client.query('SELECT id FROM washers ORDER BY id')).rows.map((row) => row.id);
+    if (!washerIds.length) throw new Error('No washers found. Run the migration first.');
     const userId = randomUUID();
     const tokenHash = createHash('sha256').update(randomBytes(32)).digest('hex');
-    await client.query('INSERT INTO users (id, nickname, user_code, token_hash) VALUES ($1, $2, $3, $4)', [userId, NICKNAME, String(Math.floor(1000 + Math.random() * 9000)), tokenHash]);
+    await client.query('INSERT INTO users (id, nickname, user_code, token_hash) VALUES ($1, $2, $3, $4)', [userId, NICKNAME, String(between(1000, 9999)), tokenHash]);
 
     const now = Date.now();
+    const todayStart = Math.floor((now + KST) / DAY) * DAY - KST; // UTC ms of today's KST midnight
     let inserted = 0;
-    const currentHour = new Date(now + 9 * 3600_000).getUTCHours();
     for (let day = 0; day <= 30; day++) {
-      const perDay = 1 + Math.floor(Math.random() * (day === 0 ? 3 : 4));
-      for (let n = 0; n < perDay; n++) {
-        let hour = pickHour();
-        // Today only gets sessions in hours that already passed.
-        if (day === 0) for (let tries = 0; tries < 30 && hour >= currentHour; tries++) hour = pickHour();
-        if (day === 0 && hour >= currentHour) continue;
-        const kstDay = new Date(now - day * 86_400_000 + 9 * 3600_000);
-        const start = Date.UTC(kstDay.getUTCFullYear(), kstDay.getUTCMonth(), kstDay.getUTCDate(), hour - 9, Math.floor(Math.random() * 60));
-        const finish = start + CYCLE_MS + Math.floor((Math.random() - 0.5) * 2000);
+      const midnight = todayStart - day * DAY;
+      const weekday = new Date(midnight + KST).getUTCDay();
+      for (const { washerId, start: minute } of planDay(weekday, washerIds)) {
+        const start = midnight + minute * 60_000 + between(0, 59) * 1000;
+        if (start > now - 60_000) continue; // nothing in the future
+        const finish = start + between(11_500, 13_000); // the app scales ~12 s to a ~48 minute cycle
+        const reserved = start - between(60, 240) * 1000;
+        const pickedUp = finish + between(2, 25) * 60_000;
         await client.query(
           `INSERT INTO laundry_sessions (id, washer_id, user_id, status, reserved_at, started_at, finished_at, picked_up_at, finished_notification_sent_at, created_at, updated_at)
            VALUES ($1, $2, $3, 'PICKED_UP', $4, $5, $6, $7, $6, $4, $7)`,
-          [randomUUID(), washers[Math.floor(Math.random() * washers.length)], userId, new Date(start - 60_000), new Date(start), new Date(finish), new Date(finish + 5 * 60_000)],
+          [randomUUID(), washerId, userId, new Date(reserved), new Date(start), new Date(finish), new Date(pickedUp)],
         );
         inserted++;
       }

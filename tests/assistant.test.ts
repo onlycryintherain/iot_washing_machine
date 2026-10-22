@@ -84,6 +84,7 @@ describe('answerBestTime', () => {
     const starts = [
       ...Array.from({ length: 8 }, (_, i) => kstHour(21, i + 1)),
       ...Array.from({ length: 4 }, (_, i) => kstHour(19, i + 1)),
+      ...Array.from({ length: 2 }, (_, i) => kstHour(20, i + 1)),
       kstHour(14),
     ];
     expect(starts.length).toBeGreaterThanOrEqual(MIN_HISTORY_FOR_RECOMMENDATION);
@@ -92,11 +93,17 @@ describe('answerBestTime', () => {
     expect(reply.text).toContain('가장 붐비는 시간대: 오후 9시(8건)');
     expect(reply.text).toContain('지금이 가장 붐비는 시간대');
     const quiet = reply.text.split('\n').find((line) => line.includes('한산한'))!;
+    expect(quiet).toBe('• 비교적 한산한 시간대: 오후 2시, 오후 7시, 오후 8시');
+  });
+  it('never recommends an hour without any usage, such as the closed morning', () => {
+    const starts = [...Array.from({ length: 6 }, (_, i) => kstHour(21, i + 1)), ...Array.from({ length: 6 }, (_, i) => kstHour(22, i + 1))];
+    const quiet = answerBestTime(starts, NOW).reply.text.split('\n').find((line) => line.includes('한산한'))!;
+    expect(quiet).not.toMatch(/오전/);
+    expect(quiet).toContain('오후 10시');
     expect(quiet).not.toContain('오후 9시');
-    expect(quiet).not.toContain('오후 7시');
   });
   it('never recommends late-night hours', () => {
-    const starts = Array.from({ length: 12 }, (_, i) => kstHour(12 + (i % 6), i + 1));
+    const starts = [...Array.from({ length: 6 }, (_, i) => kstHour(2, i + 1)), ...Array.from({ length: 6 }, (_, i) => kstHour(21, i + 1)), kstHour(15)];
     const quiet = answerBestTime(starts, NOW).reply.text.split('\n').find((line) => line.includes('한산한'))!;
     expect(quiet).not.toMatch(/오전 (12|[1-6])시/);
   });

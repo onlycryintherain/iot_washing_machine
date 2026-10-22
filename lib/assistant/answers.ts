@@ -92,9 +92,10 @@ export function answerBestTime(startTimes: Date[], now = Date.now()): { reply: A
   }
   const counts = Array.from({ length: 24 }, () => 0);
   for (const start of startTimes) counts[kst(start.getTime()).getUTCHours()]++;
-  const candidates = counts.map((count, hour) => ({ count, hour })).filter(({ hour }) => hour >= RECOMMEND_FROM_HOUR);
-  const quiet = [...candidates].sort((a, b) => a.count - b.count || a.hour - b.hour).slice(0, 3).sort((a, b) => a.hour - b.hour);
+  // Hours nobody used (dorm closed, no entry) are not "quiet", so only hours with recorded usage are candidates.
+  const candidates = counts.map((count, hour) => ({ count, hour })).filter(({ hour, count }) => hour >= RECOMMEND_FROM_HOUR && count > 0);
   const busiest = candidates.reduce((best, item) => (item.count > best.count ? item : best));
+  const quiet = candidates.filter((item) => item.hour !== busiest.hour).sort((a, b) => a.count - b.count || a.hour - b.hour).slice(0, 3).sort((a, b) => a.hour - b.hour);
   const currentHour = kst(now).getUTCHours();
   const lines = [
     `최근 ${HISTORY_DAYS}일 이용 기록 ${startTimes.length}건을 기준으로 봤어요.`,
