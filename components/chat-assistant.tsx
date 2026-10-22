@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ChevronRight, Send, X } from 'lucide-react';
+import { ChevronRight, MessageCircle, Send, X } from 'lucide-react';
 import { chipsAfter, splitReply, type AssistantIntent, type AssistantReply } from '@/lib/assistant/answers';
 
 type Message = { id: number; from: 'user' | 'bot'; text: string; links?: AssistantReply['links'] };
@@ -67,11 +67,11 @@ export function ChatAssistant() {
   }
 
   return <>
-    {!open && <button className="chat-fab" type="button" aria-label="뽀득이 열기" aria-expanded={false} onClick={() => setOpen(true)}><Avatar size={56} /></button>}
+    {!open && <button className="chat-fab" type="button" aria-label="뽀득이 열기" aria-expanded={false} onClick={() => setOpen(true)}><MessageCircle size={24} /></button>}
     {open && <div className="chat-scrim" onClick={() => setOpen(false)} aria-hidden="true" />}
     {open && <section className="chat-panel" role="dialog" aria-label="뽀득이">
       <header className="chat-header">
-        <div className="chat-title"><Avatar size={44} /><div><strong>뽀득이</strong><small>세탁실 도우미 · 자주 묻는 질문에 바로 답해요</small></div></div>
+        <div className="chat-title"><strong>뽀득이</strong><small>세탁실 도우미 · 자주 묻는 질문에 바로 답해요</small></div>
         <button className="chat-close" type="button" aria-label="닫기" onClick={() => setOpen(false)}><X size={20} /></button>
       </header>
       <div className="chat-log" aria-live="polite">
