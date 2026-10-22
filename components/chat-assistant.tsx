@@ -1,13 +1,18 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
-import { ChevronRight, MessageCircle, Send, X } from 'lucide-react';
+import { ChevronRight, Send, X } from 'lucide-react';
 import { chipsAfter, splitReply, type AssistantIntent, type AssistantReply } from '@/lib/assistant/answers';
 
 type Message = { id: number; from: 'user' | 'bot'; text: string; links?: AssistantReply['links'] };
 
-const greeting: Message = { id: 0, from: 'bot', text: '세탁실 도우미예요. 궁금한 걸 골라주세요.' };
+const greeting: Message = { id: 0, from: 'bot', text: '뽀득이예요. 궁금한 걸 골라주세요.' };
+
+function Avatar({ size }: { size: number }) {
+  return <Image className="chat-avatar" src="/icons/ppodeuk.png" alt="" width={size} height={size} unoptimized />;
+}
 
 export function ChatAssistant() {
   const [open, setOpen] = useState(false);
@@ -62,23 +67,25 @@ export function ChatAssistant() {
   }
 
   return <>
-    {!open && <button className="chat-fab" type="button" aria-label="세탁실 도우미 열기" aria-expanded={false} onClick={() => setOpen(true)}><MessageCircle size={24} /></button>}
+    {!open && <button className="chat-fab" type="button" aria-label="뽀득이 열기" aria-expanded={false} onClick={() => setOpen(true)}><Avatar size={56} /></button>}
     {open && <div className="chat-scrim" onClick={() => setOpen(false)} aria-hidden="true" />}
-    {open && <section className="chat-panel" role="dialog" aria-label="세탁실 도우미">
+    {open && <section className="chat-panel" role="dialog" aria-label="뽀득이">
       <header className="chat-header">
-        <div><strong>세탁실 도우미</strong><small>자주 묻는 질문에 바로 답해드려요</small></div>
+        <div className="chat-title"><Avatar size={44} /><div><strong>뽀득이</strong><small>세탁실 도우미 · 자주 묻는 질문에 바로 답해요</small></div></div>
         <button className="chat-close" type="button" aria-label="닫기" onClick={() => setOpen(false)}><X size={20} /></button>
       </header>
       <div className="chat-log" aria-live="polite">
-        {messages.map((message) => <div key={message.id} className={`chat-bubble ${message.from}`}>
-          {message.from === 'user' ? <p>{message.text}</p> : splitReply(message.text).map((block, index) => block.kind === 'p'
+        {messages.map((message) => message.from === 'user'
+          ? <div key={message.id} className="chat-bubble user"><p>{message.text}</p></div>
+          : <div key={message.id} className="chat-row"><Avatar size={32} /><div className="chat-bubble bot">
+          {splitReply(message.text).map((block, index) => block.kind === 'p'
             ? <p key={index}>{block.text}</p>
             : block.kind === 'ul'
               ? <ul key={index} className="chat-list">{block.items.map((item, i) => <li key={i}>{item.title && <strong>{item.title}</strong>}<span>{item.body}</span></li>)}</ul>
               : <ol key={index} className="chat-steps">{block.items.map((item, i) => <li key={i}><span>{item.body}</span></li>)}</ol>)}
           {message.links?.map((link) => <Link key={link.href} className="chat-link" href={link.href} onClick={() => setOpen(false)}>{link.label}<ChevronRight size={14} aria-hidden="true" /></Link>)}
-        </div>)}
-        {busy && <div className="chat-bubble bot chat-typing" role="status" aria-label="확인하는 중"><i /><i /><i /></div>}
+        </div></div>)}
+        {busy && <div className="chat-row"><Avatar size={32} /><div className="chat-bubble bot chat-typing" role="status" aria-label="확인하는 중"><i /><i /><i /></div></div>}
         <div ref={bottom} />
       </div>
       <div className="chat-suggestions">
