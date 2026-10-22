@@ -108,7 +108,7 @@ docker compose logs -f app  # "Reminder scheduler started" 확인
 - **알림 자동 처리:** `ENABLE_SCHEDULER=true`이면 앱 프로세스가 1분마다 완료 알림과 수거 리마인더(종료 2분 후)를 처리합니다(`instrumentation.ts`, `lib/washer/scheduler.ts`). 외부 cron이 필요 없고, 모든 처리는 중복 실행에도 안전합니다. 앱 컨테이너는 한 개만 실행하세요.
 - **업데이트:** `git pull && docker compose up -d --build`. DB 볼륨(`db-data`)은 유지됩니다.
 - **백업:** `backup` 컨테이너가 하루 한 번 `./backups/laundry-YYYY-MM-DD.dump`를 만들고 7일치를 보관합니다. 복원은 `docker compose exec -T db pg_restore -U laundry -d laundry --clean < backups/<파일>.dump`입니다.
-- **Cloudflare Tunnel:** 공개 호스트명의 service를 `http://localhost:3000`으로 지정합니다(`cloudflared`가 호스트에서 실행될 때).
+- **Cloudflare Tunnel:** Cloudflare에 등록된 도메인이 필요합니다(레코드가 같은 Cloudflare 계정에 있어야 터널로 연결됩니다). Zero Trust 대시보드의 *Networks → Tunnels*에서 터널을 만들고, Public Hostname의 service를 `http://app:3000`으로 지정한 뒤 `.env`에 `COMPOSE_PROFILES=tunnel`과 `TUNNEL_TOKEN=<토큰>`을 넣고 `docker compose up -d`를 실행하면 `tunnel` 컨테이너가 연결합니다. 호스트에서 이미 `cloudflared`를 쓰고 있다면 service를 `http://localhost:3000`으로 지정해도 됩니다.
 - **수동 알림 처리:** `/admin/simulator`의 **대기 중인 알림 처리** 버튼, 또는 `POST /api/internal/process-reminders`(`DEVICE_API_SECRET` bearer 인증)로도 실행할 수 있습니다.
 
 ## PWA test checklist
