@@ -7,11 +7,14 @@ import type { WasherSummary } from '@/lib/washer/presentation';
 import { washerPresentation } from '@/lib/washer/presentation';
 import { WasherStatus } from '@/components/washer-status';
 import { WasherTiming } from '@/components/washer-timing';
-import { WasherIllustration } from '@/components/washer-illustration';
+import { EventTimeline } from '@/components/event-timeline';
 
 type Washer = WasherSummary & {
   reservedAt: string | null;
   lastActivityAt: string | null;
+  vibration: number | null;
+  current: number | null;
+  doorOpen: boolean;
   isMine: boolean;
 };
 
@@ -117,7 +120,6 @@ export default function WasherPage({ params }: { params: Promise<{ washerId: str
     </> : <>
       <h1>{washer.name}</h1>
       <section className="status-panel" aria-label="현재 세탁기 상태">
-        <div className={`wm-stage ${status?.tone}`}><WasherIllustration state={washer.state} size={176} label={status?.label} /></div>
         <WasherStatus state={washer.state} />
         <h2 className="status-big">{headline}</h2>
         {washer.startedAt && (washer.state === 'RUNNING' || washer.state === 'MAYBE_FINISHED')
@@ -130,7 +132,12 @@ export default function WasherPage({ params }: { params: Promise<{ washerId: str
         {washer.startedAt && <div className="detail-row"><span>시작 시각</span><span>{timeLabel(washer.startedAt)}</span></div>}
         {washer.finishedAt && finished && <div className="detail-row"><span>완료 시각</span><span>{timeLabel(washer.finishedAt)}</span></div>}
         <div className="detail-row"><span>최근 활동</span><span>{timeLabel(washer.lastActivityAt) || '—'}</span></div>
+        {washer.vibration != null && <div className="detail-row"><span>진동</span><span>{washer.vibration}</span></div>}
+        {washer.current != null && <div className="detail-row"><span>전류</span><span>{washer.current} A</span></div>}
+        <div className="detail-row"><span>문</span><span>{washer.doorOpen ? '열림' : '닫힘'}</span></div>
       </div>
+
+      <EventTimeline washerId={washerId} />
 
       {offline && <p className="notice" role="status">오프라인 상태예요. 마지막으로 확인한 상태를 보여드려요.</p>}
       {loadError && !offline && <p className="notice" role="status">{loadError} 마지막으로 확인한 상태를 보여드려요.</p>}

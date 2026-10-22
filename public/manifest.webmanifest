@@ -47,7 +47,7 @@
       "sizes": "780x1688",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "세탁이 끝나면 알림으로 알려줘요"
+      "label": "센서로 세탁 상태를 실시간으로"
     },
     {
       "src": "/screenshots/chat.png",

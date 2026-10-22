@@ -12,7 +12,9 @@
     "db:migrate": "node --env-file-if-exists=.env.local scripts/migrate.mjs",
     "db:seed": "node --env-file-if-exists=.env.local scripts/migrate.mjs --seed",
     "push:vapid": "web-push generate-vapid-keys",
-    "test": "vitest run"
+    "test": "vitest run",
+    "db:seed-demo": "node --env-file-if-exists=.env.local scripts/seed-demo.mjs",
+    "db:clean-demo": "node --env-file-if-exists=.env.local scripts/seed-demo.mjs --clean"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.3",
