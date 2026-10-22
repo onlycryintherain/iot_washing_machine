@@ -35,13 +35,12 @@ export async function DELETE(request: Request, context: { params: Promise<{ user
     const [assigned] = await db.select({ id: washers.id }).from(washers).where(eq(washers.currentUserId, userId)).limit(1);
     if (assigned) return NextResponse.json({ error: '현재 세탁기에 연결된 사용자입니다. 수거 완료 또는 초기화 후 삭제해주세요.' }, { status: 409 });
 
-    // Neon HTTP batch runs these dependent deletes in one database transaction.
-    const [, , , deleted] = await db.batch([
-      db.delete(reminderLog).where(inArray(reminderLog.sessionId, db.select({ id: sessions.id }).from(sessions).where(eq(sessions.userId, userId)))),
-      db.delete(sessions).where(eq(sessions.userId, userId)),
-      db.delete(subscriptions).where(eq(subscriptions.userId, userId)),
-      db.delete(users).where(eq(users.id, userId)).returning({ id: users.id }),
-    ]);
+    const deleted = await db.transaction(async (tx) => {
+      await tx.delete(reminderLog).where(inArray(reminderLog.sessionId, tx.select({ id: sessions.id }).from(sessions).where(eq(sessions.userId, userId))));
+      await tx.delete(sessions).where(eq(sessions.userId, userId));
+      await tx.delete(subscriptions).where(eq(subscriptions.userId, userId));
+      return tx.delete(users).where(eq(users.id, userId)).returning({ id: users.id });
+    });
     if (!deleted.length) return NextResponse.json({ error: '사용자를 찾을 수 없습니다.' }, { status: 404 });
     return NextResponse.json({ deleted: true });
   } catch (error) {

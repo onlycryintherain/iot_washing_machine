@@ -7,9 +7,9 @@
 ```text
 PWA (사용자 UI, Service Worker, Push subscription)
         ↓
-Next.js / Vercel (API, state machine, Push, Device API)
+Next.js server in Docker (API, state machine, Push, Device API, reminder scheduler)
         ↓
-Neon PostgreSQL (Drizzle schema/migration)
+PostgreSQL (Drizzle schema, SQL migrations)
 
 Hardware Simulator ─┐
                     ├→ Device event API → washer event service
@@ -20,7 +20,7 @@ Simulator 및 향후 ESP32는 같은 washer service/state machine 경로를 이�
 
 ## Stack
 
-Next.js App Router, TypeScript, Tailwind CSS, Lucide, Neon PostgreSQL, Drizzle ORM, Zod, Web Push (`web-push`), Service Worker.
+Next.js App Router, TypeScript, Tailwind CSS, Lucide, PostgreSQL (`pg`), Drizzle ORM, Zod, Web Push (`web-push`), Service Worker.
 
 ## Environment
 
@@ -28,7 +28,9 @@ Next.js App Router, TypeScript, Tailwind CSS, Lucide, Neon PostgreSQL, Drizzle O
 
 | 변수 | 용도 |
 |---|---|
-| `DATABASE_URL` | Neon PostgreSQL 연결 URL |
+| `DATABASE_URL` | PostgreSQL 연결 URL (docker compose에서는 자동 설정) |
+| `POSTGRES_PASSWORD` | docker compose의 DB 비밀번호 (`openssl rand -hex 24`) |
+| `ENABLE_SCHEDULER` | `true`이면 서버가 1분마다 완료·수거 알림을 처리 (compose에서 자동 설정) |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | 브라우저 Push 구독용 공개 키 |
 | `VAPID_PRIVATE_KEY` | 서버 Push 서명 키 |
 | `VAPID_SUBJECT` | `mailto:` 또는 서비스 URL |
@@ -38,6 +40,8 @@ Next.js App Router, TypeScript, Tailwind CSS, Lucide, Neon PostgreSQL, Drizzle O
 VAPID 키는 `npm run push:vapid`로 생성합니다. 공개 키와 개인 키 쌍을 각각 환경변수에 저장하세요.
 
 ## Local development
+
+개발용 PostgreSQL이 필요합니다. 예: `docker run -d --name laundry-pg -p 5432:5432 -e POSTGRES_USER=laundry -e POSTGRES_PASSWORD=password -e POSTGRES_DB=laundry postgres:17-alpine` 후 `.env.example`의 기본 `DATABASE_URL`을 그대로 사용합니다.
 
 ```bash
 npm install
@@ -76,13 +80,13 @@ npm run lint && npm run typecheck && npm test && npm run build
 
 `tests/`는 상태 머신 전이, 인증 비교, 에러 응답, 기기 payload 검증을 다룹니다. 같은 검사가 PR과 `main` push마다 GitHub Actions(`ci.yml`)에서 실행됩니다. `push-reminders.yml`의 호출 주소는 저장소 변수 `APP_URL`로 바꿀 수 있습니다.
 
-## Neon setup
+## Database
 
-Neon에서 PostgreSQL 프로젝트를 만들고 연결 문자열을 `DATABASE_URL`에 입력합니다. `npm run db:migrate`는 `drizzle/0000_initial.sql`을 적용하고 세탁기 2대를 seed합니다. `npm run db:seed`는 해당 세탁기 행이 없는 경우 추가합니다. 스키마 변경은 Drizzle schema와 migration SQL을 함께 갱신합니다.
+`npm run db:migrate`는 `drizzle/*.sql`을 순서대로, 각각 트랜잭션으로 적용하며 이미 적용한 파일은 건너뜁니다(`app_migrations` 테이블). `npm run db:seed`는 같은 마이그레이션에 세탁기 1·2번 seed를 더합니다. 두 명령 모두 `.env.local`의 `DATABASE_URL`을 읽습니다. 스키마를 바꿀 때는 Drizzle schema와 migration SQL을 함께 갱신하세요. 컨테이너는 시작할 때마다 `scripts/migrate.mjs --seed`를 실행하므로 배포만 하면 스키마가 맞춰집니다.
 
 ## Push setup
 
-1. VAPID 키를 생성하고 Vercel 환경변수에 저장합니다.
+1. VAPID 키를 생성하고 서버의 `.env`에 저장합니다.
 2. HTTPS로 배포합니다. 로컬 개발의 localhost도 Service Worker 테스트에 사용할 수 있습니다.
 3. 앱 첫 실행 때 이름과 학번을 입력하고 **등록하고 시작하기**를 누르면 알림 권한을 요청하고, 허용한 경우 이 기기의 Push 구독을 저장합니다.
 4. iPhone/iPad는 Safari 공유 메뉴에서 **홈 화면에 추가**한 뒤 설치된 앱을 열어 등록해야 Push 권한을 요청할 수 있습니다.
@@ -90,18 +94,22 @@ Neon에서 PostgreSQL 프로젝트를 만들고 연결 문자열을 `DATABASE_UR
 
 기기가 offline/expired subscription 응답(410)을 보내면 해당 구독은 제거됩니다. 배달 확인 여부는 Push 서비스 제공자와 OS 설정에 좌우됩니다.
 
-## Vercel deployment
+## Self-hosted deployment (docker compose)
 
-Production: https://iotwashingmachine.vercel.app
+Ubuntu 서버에서 `docker compose`로 **앱 + PostgreSQL + 일일 백업** 세 컨테이너를 실행합니다. 외부에는 Cloudflare Tunnel이 HTTPS로 연결하므로 서버 포트를 인터넷에 열지 않습니다(앱은 `127.0.0.1:3000`에만 바인딩). PWA 설치와 Push는 HTTPS가 필요합니다.
 
-`vercel.json`은 Vercel Functions를 싱가포르(`sin1`)에서 실행하도록 설정합니다. Vercel 환경에는 `DATABASE_URL`, VAPID 변수, `DEVICE_API_SECRET`, `ADMIN_PASSWORD`가 필요합니다. 실제 도메인 HTTPS에서 PWA 설치 및 Push 구독을 확인합니다. 내부 알림 처리 endpoint는 `POST /api/internal/process-reminders`이며 `DEVICE_API_SECRET` bearer 인증을 사용합니다.
+```bash
+cp .env.example .env        # POSTGRES_PASSWORD, VAPID, DEVICE_API_SECRET, ADMIN_PASSWORD 채우기
+chmod 600 .env
+docker compose up -d --build
+docker compose logs -f app  # "Reminder scheduler started" 확인
+```
 
-**알림 처리는 자동 주기 실행을 하지 않습니다.** Neon 무료 플랜은 프로젝트당 월 100 CU-시간이고, 1~5분 간격으로 DB를 호출하면 컴퓨트가 꺼지지 않아 한도를 몇 주 만에 소진합니다(이전 프로젝트가 이렇게 한도에 걸렸습니다). 세탁 완료 알림은 종료 이벤트가 도착하는 즉시 전송되므로 영향이 없고, 수거 리마인더(종료 2분 후)만 아래 방법으로 직접 실행합니다.
-
-- `/admin/simulator`의 **대기 중인 알림 처리** 버튼
-- GitHub Actions의 *Send laundry notifications* 워크플로 수동 실행 (`workflow_dispatch`)
-
-`neon-functions/notify`는 Neon Function Trigger용 예제로 남겨두었지만 배포하지 않습니다. 실서비스에서 주기 실행이 필요하면 유료 플랜이나 컴퓨트가 꺼지지 않아도 되는 호스팅을 쓰세요. 예약 실행 시각과 실제 Push 도착 시각은 서비스 부하·기기 상태에 따라 조금 달라질 수 있습니다.
+- **알림 자동 처리:** `ENABLE_SCHEDULER=true`이면 앱 프로세스가 1분마다 완료 알림과 수거 리마인더(종료 2분 후)를 처리합니다(`instrumentation.ts`, `lib/washer/scheduler.ts`). 외부 cron이 필요 없고, 모든 처리는 중복 실행에도 안전합니다. 앱 컨테이너는 한 개만 실행하세요.
+- **업데이트:** `git pull && docker compose up -d --build`. DB 볼륨(`db-data`)은 유지됩니다.
+- **백업:** `backup` 컨테이너가 하루 한 번 `./backups/laundry-YYYY-MM-DD.dump`를 만들고 7일치를 보관합니다. 복원은 `docker compose exec -T db pg_restore -U laundry -d laundry --clean < backups/<파일>.dump`입니다.
+- **Cloudflare Tunnel:** 공개 호스트명의 service를 `http://localhost:3000`으로 지정합니다(`cloudflared`가 호스트에서 실행될 때).
+- **수동 알림 처리:** `/admin/simulator`의 **대기 중인 알림 처리** 버튼, 또는 `POST /api/internal/process-reminders`(`DEVICE_API_SECRET` bearer 인증)로도 실행할 수 있습니다.
 
 ## PWA test checklist
 
@@ -129,6 +137,6 @@ Production: https://iotwashingmachine.vercel.app
 
 ## Known MVP boundaries
 
-- Neon/VAPID 계정과 실제 스마트폰은 실행 환경 외부에서 제공해야 합니다. 이 저장소만으로 실기기 Push 전달을 확인할 수는 없습니다.
+- VAPID 키와 실제 스마트폰은 실행 환경 외부에서 제공해야 합니다. 이 저장소만으로 실기기 Push 전달을 확인할 수는 없습니다.
 - Device API의 Bearer shared secret은 기본 인증 경계입니다. 실 배포 전 장치별 키/회전과 rate limiting을 추가하는 것이 좋습니다.
 - 네트워크 mutation은 offline 상태에서 실행하지 않으며, 화면은 서버 polling으로 갱신됩니다.

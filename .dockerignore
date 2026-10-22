@@ -1,0 +1,12 @@
+node_modules
+.next
+.git
+.github
+.agents
+.claude
+.env*
+!.env.example
+docs
+assets
+backups
+*.tsbuildinfo
