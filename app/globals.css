@@ -216,10 +216,43 @@ select.input { appearance: none; padding-right: 36px; background-image: url("dat
 
 .timeline { margin: 0; padding: 0; list-style: none; }
 .timeline li { display: flex; gap: 14px; padding: 9px 0; font-size: 14px; }
-.timeline time { flex: none; width: 64px; color: var(--grey-600); font-variant-numeric: tabular-nums; }
+.timeline time { flex: none; width: 84px; white-space: nowrap; color: var(--grey-600); font-variant-numeric: tabular-nums; }
 .timeline li > span { display: grid; gap: 1px; min-width: 0; }
 .timeline strong { font-weight: 600; }
 .timeline small { font-size: 12px; color: var(--grey-600); font-variant-numeric: tabular-nums; }
+
+/* ---------- Bottom navigation, my wash, settings ---------- */
+.bottom-nav {
+  position: fixed; z-index: 25; left: 50%; bottom: calc(12px + env(safe-area-inset-bottom)); width: min(calc(100% - 32px), 420px); transform: translateX(-50%);
+  display: grid; grid-template-columns: repeat(3, 1fr); padding: 6px; border: 1px solid var(--grey-200); border-radius: var(--radius-3xl);
+  background: rgb(255 255 255 / 0.96); backdrop-filter: blur(12px); box-shadow: 0 4px 16px rgb(25 31 40 / 0.08);
+}
+.bottom-nav a {
+  display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 9px 0 8px; border-radius: 18px;
+  color: var(--grey-500); text-decoration: none; font-size: 11.5px; font-weight: 600;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+.bottom-nav a[aria-current='page'] { color: var(--blue-500); }
+.bottom-nav a:active { background: var(--grey-100); }
+body:has(.bottom-nav) .student-app { padding-bottom: calc(116px + env(safe-area-inset-bottom)); }
+body:has(.bottom-nav) .chat-fab { bottom: calc(92px + env(safe-area-inset-bottom)); }
+
+.empty-state { display: grid; justify-items: center; gap: 10px; padding: 56px 8px 24px; text-align: center; }
+.empty-icon { display: grid; place-items: center; width: 76px; height: 76px; margin-bottom: 6px; border-radius: 26px; background: var(--grey-100); color: var(--grey-500); }
+.empty-state .button { max-width: 320px; margin-top: 14px; }
+.my-card { margin-top: 12px; }
+.my-actions { display: grid; gap: 10px; margin-top: 20px; }
+.my-actions .button { text-decoration: none; }
+
+.panel .input { background: #fff; }
+.panel .button.secondary { background: #fff; }
+.panel .button.secondary:active { background: var(--grey-200); }
+.panel .input:focus { border-color: var(--blue-500); }
+.panel form .button { margin-top: 4px; }
+.setting-status { margin-bottom: 12px; font-size: 15px; font-weight: 600; }
+.setting-status.on { color: var(--green-700); }
+.setting-status.denied, .setting-status.unsupported { color: var(--orange-700); }
+.setting-actions { display: grid; gap: 10px; margin-top: 14px; }
 
 /* ---------- Washer detail ---------- */
 .status-panel { margin: 4px 0 24px; }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { WasherSummary } from '@/lib/washer/presentation';
 
 export function useWasherOverview() {
@@ -8,6 +8,7 @@ export function useWasherOverview() {
   const [myWasher, setMyWasher] = useState<WasherSummary | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState('');
+  const loadRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     let live = true;
@@ -36,6 +37,7 @@ export function useWasherOverview() {
         setLoaded(true);
       });
     };
+    loadRef.current = load;
     load();
     const interval = setInterval(load, 5000);
     document.addEventListener('visibilitychange', load);
@@ -46,5 +48,5 @@ export function useWasherOverview() {
     };
   }, []);
 
-  return { washers, myWasher, loaded, error };
+  return { washers, myWasher, loaded, error, refresh: () => loadRef.current() };
 }
