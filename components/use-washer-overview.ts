@@ -22,7 +22,7 @@ export function useWasherOverview() {
           localStorage.removeItem('laundry-user');
           window.dispatchEvent(new Event('laundry-profile-updated'));
         }
-        if (!response.ok) throw new Error('세탁기 상태를 불러오지 못했습니다.');
+        if (!response.ok) throw new Error('세탁기 상태를 불러오지 못했어요.');
         return response.json();
       }).then((data) => {
         if (!live) return;
@@ -32,7 +32,7 @@ export function useWasherOverview() {
         setLoaded(true);
       }).catch(() => {
         if (!live) return;
-        setError('세탁기 상태를 불러오지 못했습니다.');
+        setError('세탁기 상태를 불러오지 못했어요.');
         setLoaded(true);
       });
     };

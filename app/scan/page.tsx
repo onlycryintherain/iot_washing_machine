@@ -39,7 +39,7 @@ export default function ScanPage() {
   async function startCamera() {
     if (busy || runningRef.current) return;
     if (!navigator.mediaDevices?.getUserMedia) {
-      setError('이 기기에서 카메라를 사용할 수 없습니다. 홈에서 세탁기를 선택해주세요.');
+      setError('이 기기에서는 카메라를 사용할 수 없어요. 홈에서 세탁기를 선택해주세요.');
       return;
     }
 
@@ -96,7 +96,7 @@ export default function ScanPage() {
       frameRef.current = requestAnimationFrame(scanFrame);
     } catch {
       stopCamera();
-      setError('카메라를 열지 못했습니다. 카메라 권한을 허용하거나 홈에서 세탁기를 선택해주세요.');
+      setError('카메라를 열지 못했어요. 카메라 권한을 허용하거나 홈에서 세탁기를 선택해주세요.');
     } finally {
       if (mountedRef.current) setBusy(false);
     }
@@ -105,7 +105,7 @@ export default function ScanPage() {
   return <>
     <div className="topline"><Link className="back" href="/" aria-label="홈으로 돌아가기"><ArrowLeft size={20} /></Link></div>
     <h1>세탁기 QR 스캔</h1>
-    <p className="lead">세탁기에 붙은 QR을 앱 카메라로 비추면 해당 세탁기로 이동합니다.</p>
+    <p className="lead">세탁기에 붙은 QR을 비추면 해당 세탁기로 바로 이동해요.</p>
     <div className="scan-preview">
       <video ref={videoRef} playsInline muted aria-label="QR 스캔 카메라" />
       {!active && <div className="scan-placeholder"><Camera size={32} /><span>카메라를 켜고 QR을 비춰주세요</span></div>}
@@ -114,7 +114,7 @@ export default function ScanPage() {
     <canvas ref={canvasRef} hidden aria-hidden="true" />
     {error && <p className="error" role="alert">{error}</p>}
     <button className="button scan-action" type="button" disabled={busy} onClick={active ? stopCamera : startCamera}>
-      {active ? <CameraOff size={19} /> : <Camera size={19} />}{busy ? '카메라 여는 중…' : active ? '스캔 중지' : 'QR 스캔 시작'}
+      {active ? <CameraOff size={19} /> : <Camera size={19} />}{busy ? '카메라를 여는 중…' : active ? '스캔 중지' : 'QR 스캔 시작'}
     </button>
   </>;
 }

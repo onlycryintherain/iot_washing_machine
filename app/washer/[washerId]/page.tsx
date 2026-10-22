@@ -45,17 +45,17 @@ export default function WasherPage({ params }: { params: Promise<{ washerId: str
           localStorage.removeItem('laundry-user');
           window.dispatchEvent(new Event('laundry-profile-updated'));
         }
-        if (!response.ok) throw new Error('세탁기 상태를 불러오지 못했습니다.');
+        if (!response.ok) throw new Error('세탁기 상태를 불러오지 못했어요.');
         return response.json();
       }).then((data) => {
         if (!live) return;
         const current = (data.washers as Washer[]).find((item) => item.id === washerId) ?? null;
         setWasher(current);
-        setLoadError(current ? '' : '세탁기를 찾을 수 없습니다.');
+        setLoadError(current ? '' : '세탁기를 찾을 수 없어요.');
         setLoaded(true);
       }).catch(() => {
         if (!live) return;
-        setLoadError('세탁기 상태를 불러오지 못했습니다.');
+        setLoadError('세탁기 상태를 불러오지 못했어요.');
         setLoaded(true);
       });
     };
@@ -85,11 +85,11 @@ export default function WasherPage({ params }: { params: Promise<{ washerId: str
           localStorage.removeItem('laundry-user');
           window.dispatchEvent(new Event('laundry-profile-updated'));
         }
-        throw new Error(typeof data.error === 'string' ? data.error : '요청을 처리하지 못했습니다.');
+        throw new Error(typeof data.error === 'string' ? data.error : '요청을 처리하지 못했어요.');
       }
       setWasher({ ...data.washer, isMine: action === 'reserve' });
     } catch (error) {
-      setActionError(error instanceof Error ? error.message : '요청을 처리하지 못했습니다.');
+      setActionError(error instanceof Error ? error.message : '요청을 처리하지 못했어요.');
     } finally {
       setBusy(false);
     }
@@ -97,6 +97,7 @@ export default function WasherPage({ params }: { params: Promise<{ washerId: str
 
   const own = !!washer?.isMine;
   const finished = washer?.state === 'FINISHED' || washer?.state === 'WAITING_FOR_PICKUP';
+  const hasActions = !offline && !!washer && (washer.state === 'IDLE' || (own && (washer.state === 'RESERVED' || finished)));
   const status = washer ? washerPresentation(washer.state) : null;
   const headline = washer?.state === 'RESERVED' && !own
     ? '다른 사용자가 시작을 기다리고 있어요'
@@ -109,8 +110,8 @@ export default function WasherPage({ params }: { params: Promise<{ washerId: str
   return <>
     <div className="topline"><Link className="back" href="/" aria-label="홈으로 돌아가기"><ArrowLeft size={20} /></Link><span className="eyebrow">{washer?.location ?? '기숙사 세탁실'}</span></div>
     {!washer ? <>
-      <h1>{loaded && loadError === '세탁기를 찾을 수 없습니다.' ? '세탁기를 찾을 수 없어요' : '세탁기 상태'}</h1>
-      <p className="muted" role="status">{loadError || (offline ? '인터넷 연결을 확인해주세요.' : '세탁기 상태를 불러오는 중…')}</p>
+      <h1>{loaded && loadError === '세탁기를 찾을 수 없어요.' ? '세탁기를 찾을 수 없어요' : '세탁기 상태'}</h1>
+      <p className="muted" role="status">{loadError || (offline ? '인터넷 연결을 확인해주세요.' : '세탁기 상태를 불러오는 중이에요…')}</p>
       {loadError && <button className="button secondary" type="button" onClick={() => location.reload()}>다시 시도</button>}
     </> : <>
       <h1>{washer.name}</h1>
@@ -124,25 +125,28 @@ export default function WasherPage({ params }: { params: Promise<{ washerId: str
 
       <div className="detail-list">
         <div className="detail-row"><span>세탁 상태</span><span>{status?.label}</span></div>
+        {washer.startedAt && <div className="detail-row"><span>시작 시각</span><span>{timeLabel(washer.startedAt)}</span></div>}
+        {washer.finishedAt && finished && <div className="detail-row"><span>완료 시각</span><span>{timeLabel(washer.finishedAt)}</span></div>}
         <div className="detail-row"><span>최근 활동</span><span>{timeLabel(washer.lastActivityAt) || '—'}</span></div>
       </div>
 
-      {offline && <p className="notice" role="status">오프라인 상태입니다. 마지막으로 확인한 상태를 보여드려요.</p>}
+      {offline && <p className="notice" role="status">오프라인 상태예요. 마지막으로 확인한 상태를 보여드려요.</p>}
       {loadError && !offline && <p className="notice" role="status">{loadError} 마지막으로 확인한 상태를 보여드려요.</p>}
       {actionError && <p className="error" role="alert">{actionError}</p>}
 
-      {!offline && <div className="action-stack">
+      {hasActions && <div className="bottom-cta-spacer" aria-hidden="true" />}
+      {hasActions && <div className="action-stack">
         {washer.state === 'IDLE' && <>
           <p className="action-hint">사용을 등록한 뒤 세탁기의 시작 버튼을 눌러주세요.</p>
-          <button className="button" type="button" disabled={busy} onClick={() => mutate('reserve')}>{busy ? '등록 중…' : '이 세탁기 사용 등록'}</button>
+          <button className="button" type="button" disabled={busy} onClick={() => mutate('reserve')}>{busy ? '등록하는 중…' : '사용 등록하기'}</button>
         </>}
         {own && washer.state === 'RESERVED' && <>
-          <p className="action-hint">세탁기의 시작 버튼을 누르면 상태가 자동으로 바뀝니다.</p>
-          <button className="button secondary" type="button" disabled={busy} onClick={() => mutate('cancel')}>{busy ? '취소 중…' : '사용 등록 취소'}</button>
+          <p className="action-hint">세탁기의 시작 버튼을 누르면 상태가 자동으로 바뀌어요.</p>
+          <button className="button secondary" type="button" disabled={busy} onClick={() => mutate('cancel')}>{busy ? '취소하는 중…' : '등록 취소하기'}</button>
         </>}
         {own && finished && <>
           <p className="action-hint">세탁물을 꺼냈다면 수거 완료를 눌러주세요.</p>
-          <button className="button" type="button" disabled={busy} onClick={() => mutate('pickup')}>{busy ? '처리 중…' : '수거 완료'}</button>
+          <button className="button" type="button" disabled={busy} onClick={() => mutate('pickup')}>{busy ? '처리하는 중…' : '수거 완료하기'}</button>
         </>}
       </div>}
     </>}

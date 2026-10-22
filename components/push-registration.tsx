@@ -53,10 +53,10 @@ export function PushRegistration({ visible }: { visible: boolean }) {
 
   return <div className="push-registration" role="status">
     <span>{state === 'denied'
-      ? '완료·미수거 알림을 받으려면 기기 설정에서 이 앱의 알림을 허용해주세요.'
+      ? '세탁 완료와 수거 알림을 받으려면 기기 설정에서 이 앱의 알림을 허용해주세요.'
       : state === 'error'
         ? '알림 연결이 완료되지 않았어요.'
-        : '세탁 완료·미수거 알림을 받아보세요.'}</span>
+        : '세탁 완료와 수거 알림을 받을 수 있어요.'}</span>
     {state !== 'denied' && <button type="button" className="text-link" onClick={() => void enable()}>
       {state === 'error' ? '다시 연결' : '알림 허용'}
     </button>}

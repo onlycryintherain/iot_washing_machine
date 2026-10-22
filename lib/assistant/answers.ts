@@ -72,7 +72,7 @@ export function answerAvailability(washers: AssistantWasher[], now = Date.now())
 
 export function answerMyStatus(washer: AssistantWasher | null, now = Date.now()): AssistantReply {
   if (!washer) {
-    return { text: '지금 등록된 내 세탁이 없어요. 세탁기에 붙은 QR을 스캔해서 등록해 보세요.', links: [{ label: 'QR 스캔하기', href: '/scan' }] };
+    return { text: '지금 등록된 내 세탁이 없어요. 세탁기에 붙은 QR을 스캔해서 등록해주세요.', links: [{ label: 'QR 스캔하기', href: '/scan' }] };
   }
   const link = [{ label: `${washer.name} 자세히 보기`, href: `/washer/${washer.id}` }];
   if (washer.state === 'FINISHED' || washer.state === 'WAITING_FOR_PICKUP') {

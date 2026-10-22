@@ -21,17 +21,17 @@ function isIos() {
 
 function requestPermissionFromTap(): { result: Promise<NotificationPermission> | null; unavailableReason: string | null } {
   if (!pushSupported()) {
-    return { result: null, unavailableReason: '이 브라우저에서는 푸시 알림을 지원하지 않습니다.' };
+    return { result: null, unavailableReason: '이 브라우저는 푸시 알림을 지원하지 않아요.' };
   }
   if (isIos() && !isInstalled()) {
-    return { result: null, unavailableReason: 'iPhone/iPad에서는 Safari에서 홈 화면에 추가한 뒤 앱을 열면 알림을 받을 수 있습니다.' };
+    return { result: null, unavailableReason: 'iPhone·iPad는 Safari에서 홈 화면에 추가한 뒤 앱을 열면 알림을 받을 수 있어요.' };
   }
   if (Notification.permission === 'granted') return { result: Promise.resolve('granted'), unavailableReason: null };
   if (Notification.permission === 'denied') return { result: Promise.resolve('denied'), unavailableReason: null };
   try {
     return { result: Notification.requestPermission(), unavailableReason: null };
   } catch {
-    return { result: null, unavailableReason: '알림 권한을 요청할 수 없는 환경입니다.' };
+    return { result: null, unavailableReason: '이 환경에서는 알림 권한을 요청할 수 없어요.' };
   }
 }
 
@@ -53,7 +53,7 @@ export function Onboarding({ onComplete }: { onComplete: (notice?: string) => vo
 
     // Request permission before any network wait so the browser sees this as a direct tap.
     const permissionRequest = permissionDeferred
-      ? { result: null, unavailableReason: '알림은 홈 화면에서 나중에 허용할 수 있습니다.' }
+      ? { result: null, unavailableReason: '알림은 홈 화면에서 나중에 허용할 수 있어요.' }
       : requestPermissionFromTap();
     setBusy(true);
     setError('');
@@ -63,19 +63,19 @@ export function Onboarding({ onComplete }: { onComplete: (notice?: string) => vo
       try {
         permission = permissionRequest.result ? await permissionRequest.result : null;
       } catch {
-        notice = '알림 권한창을 열지 못했습니다.';
+        notice = '알림 권한창을 열지 못했어요.';
       }
       let subscription: PushSubscription | null = null;
       if (permission === 'granted') {
         try {
           subscription = await getPushSubscription();
         } catch {
-          notice = '알림 허용은 완료했지만 기기 등록에 실패했습니다.';
+          notice = '알림은 허용했지만 기기 등록에 실패했어요.';
         }
       } else if (permission === 'denied') {
-        notice = '알림이 허용되지 않았습니다. 알림을 원하면 기기의 앱 또는 브라우저 알림 설정에서 허용해주세요.';
+        notice = '알림이 허용되지 않았어요. 알림을 받으려면 기기의 앱 또는 브라우저 알림 설정에서 허용해주세요.';
       } else if (permission === 'default' && !notice) {
-        notice = '알림 권한을 선택하지 않았습니다. 세탁 완료 알림을 받으려면 브라우저에서 허용해주세요.';
+        notice = '알림 권한을 선택하지 않았어요. 세탁 완료 알림을 받으려면 브라우저에서 허용해주세요.';
       }
 
       const response = await fetch('/api/users', {
@@ -84,9 +84,9 @@ export function Onboarding({ onComplete }: { onComplete: (notice?: string) => vo
         body: JSON.stringify({ nickname: name.trim(), studentId: studentId.trim() }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(typeof data.error === 'string' ? data.error : '사용자 등록에 실패했습니다.');
+      if (!response.ok) throw new Error(typeof data.error === 'string' ? data.error : '사용자 등록에 실패했어요.');
       const token = data.token ?? existingToken;
-      if (!token) throw new Error('사용자 인증 정보를 저장하지 못했습니다. 다시 시도해주세요.');
+      if (!token) throw new Error('사용자 인증 정보를 저장하지 못했어요. 다시 시도해주세요.');
 
       const profile: Profile = { ...data.user, profileComplete: true };
       localStorage.setItem('laundry-token', token);
@@ -97,12 +97,12 @@ export function Onboarding({ onComplete }: { onComplete: (notice?: string) => vo
         try {
           await savePushSubscription(token, subscription);
         } catch {
-          notice = '사용자 등록은 완료했지만 알림 연결에 실패했습니다.';
+          notice = '사용자 등록은 마쳤지만 알림 연결에 실패했어요.';
         }
       }
       onComplete(notice);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : '등록 중 문제가 생겼습니다. 다시 시도해주세요.');
+      setError(cause instanceof Error ? cause.message : '등록 중 문제가 생겼어요. 다시 시도해주세요.');
     } finally {
       setBusy(false);
     }
@@ -121,13 +121,13 @@ export function Onboarding({ onComplete }: { onComplete: (notice?: string) => vo
       <p className="lead">이름과 학번을 등록하면 세탁기를 사용할 수 있어요.</p>
       <form onSubmit={submit}>
         <label className="eyebrow" htmlFor="student-name">이름</label>
-        <input className="input" id="student-name" autoComplete="name" maxLength={60} value={name} onChange={(event) => setName(event.target.value)} placeholder="실명을 입력하세요" required />
+        <input className="input" id="student-name" autoComplete="name" maxLength={60} value={name} onChange={(event) => setName(event.target.value)} placeholder="실명을 입력해주세요" required />
         <label className="eyebrow" htmlFor="student-id">학번</label>
-        <input className="input" id="student-id" autoComplete="off" inputMode="numeric" maxLength={32} value={studentId} onChange={(event) => setStudentId(event.target.value)} placeholder="학번을 입력하세요" required />
-        <p className="onboarding-privacy">학번은 이용자 확인을 위해 저장되며, 세탁기 화면에 표시하지 않습니다.</p>
+        <input className="input" id="student-id" autoComplete="off" inputMode="numeric" maxLength={32} value={studentId} onChange={(event) => setStudentId(event.target.value)} placeholder="학번을 입력해주세요" required />
+        <p className="onboarding-privacy">학번은 이용자를 확인하는 데만 쓰고, 세탁기 화면에는 보여주지 않아요.</p>
         {error && <p className="error" role="alert">{error}</p>}
-        <button className="button" type="submit" disabled={busy || !name.trim() || !studentId.trim()}>{busy ? '등록 중…' : '등록하고 시작하기'}</button>
-        <p className="onboarding-permission-note">등록할 때 세탁 완료 알림 허용창이 열립니다.</p>
+        <button className="button" type="submit" disabled={busy || !name.trim() || !studentId.trim()}>{busy ? '등록하는 중…' : '등록하고 시작하기'}</button>
+        <p className="onboarding-permission-note">등록하면 세탁 완료 알림 허용창이 열려요.</p>
       </form>
     </section>
   </div>;

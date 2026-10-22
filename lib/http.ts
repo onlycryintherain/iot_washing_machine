@@ -6,13 +6,13 @@ import { HttpError, describeError } from '@/lib/errors';
 
 export function apiError(error: unknown) {
   if (error instanceof HttpError) return NextResponse.json({ error: error.message }, { status: error.status });
-  if (error instanceof ZodError) return NextResponse.json({ error: '요청 형식이 올바르지 않습니다.' }, { status: 400 });
+  if (error instanceof ZodError) return NextResponse.json({ error: '요청 형식이 올바르지 않아요.' }, { status: 400 });
   if (error instanceof Error && error.message.endsWith('is not configured')) {
     console.error(error.message);
-    return NextResponse.json({ error: '서버 설정이 완료되지 않았습니다.' }, { status: 503 });
+    return NextResponse.json({ error: '서버 설정이 아직 끝나지 않았어요.' }, { status: 503 });
   }
   console.error('Unhandled API error', describeError(error));
-  return NextResponse.json({ error: '서버 오류가 발생했습니다.' }, { status: 500 });
+  return NextResponse.json({ error: '서버 오류가 발생했어요.' }, { status: 500 });
 }
 
 export function safeEqual(actual: string | null | undefined, expected: string | null | undefined) {

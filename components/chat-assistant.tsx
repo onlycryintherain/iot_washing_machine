@@ -7,7 +7,7 @@ import { suggestedQuestions, type AssistantReply } from '@/lib/assistant/answers
 
 type Message = { id: number; from: 'user' | 'bot'; text: string; links?: AssistantReply['links'] };
 
-const greeting: Message = { id: 0, from: 'bot', text: '안녕하세요, 세탁실 도우미예요. 아래 질문을 눌러 보세요.' };
+const greeting: Message = { id: 0, from: 'bot', text: '세탁실 도우미예요. 궁금한 걸 골라주세요.' };
 
 export function ChatAssistant() {
   const [open, setOpen] = useState(false);
@@ -61,6 +61,7 @@ export function ChatAssistant() {
 
   return <>
     {!open && <button className="chat-fab" type="button" aria-label="세탁실 도우미 열기" aria-expanded={false} onClick={() => setOpen(true)}><MessageCircle size={24} /></button>}
+    {open && <div className="chat-scrim" onClick={() => setOpen(false)} aria-hidden="true" />}
     {open && <section className="chat-panel" role="dialog" aria-label="세탁실 도우미">
       <header className="chat-header">
         <div><strong>세탁실 도우미</strong><small>자주 묻는 질문에 바로 답해드려요</small></div>

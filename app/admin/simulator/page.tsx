@@ -298,7 +298,7 @@ export default function Simulator() {
 
       <section className="section">
         <h2>5. 알림 즉시 처리</h2>
-        <p className="lead simulator-help">예약된 수거 알림은 5분 주기 스케줄러가 처리합니다. 데모 중에는 여기서 바로 실행할 수 있습니다.</p>
+        <p className="lead simulator-help">수거 알림은 서버가 1분마다 자동으로 처리해요. 데모 중에 바로 실행하고 싶을 때 눌러주세요.</p>
         <button className="button secondary" disabled={busy || demoRunning} onClick={() => void processReminders()}>대기 중인 알림 처리</button>
       </section>
     </>}

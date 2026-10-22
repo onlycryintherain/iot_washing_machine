@@ -36,7 +36,7 @@ export async function processWasherEvent(washerId:string,event:WasherEvent,senso
 }
 async function sendCompletionNotification(session:typeof sessions.$inferSelect,washerName:string,now:Date){
   try{
-    const result=await sendUserPush(session.userId,{title:'세탁이 완료됐어요',body:`${washerName}의 세탁이 완료되었습니다. 세탁물을 확인해주세요.`,url:`/washer/${session.washerId}`,washerId:session.washerId,type:'WASH_FINISHED'});
+    const result=await sendUserPush(session.userId,{title:'세탁이 완료됐어요',body:`${washerName}의 세탁이 끝났어요. 세탁물을 확인해주세요.`,url:`/washer/${session.washerId}`,washerId:session.washerId,type:'WASH_FINISHED'});
     if(!result.sent)return 0;
     await getDb().update(sessions).set({finishedNotificationSentAt:now,updatedAt:now}).where(and(eq(sessions.id,session.id),eq(sessions.status,'FINISHED'),isNull(sessions.finishedNotificationSentAt)));
     await getDb().update(washers).set({pushSentAt:now}).where(and(eq(washers.id,session.washerId),eq(washers.currentUserId,session.userId)));
@@ -55,12 +55,12 @@ export async function processPendingCompletionNotifications(now=new Date()){
 }
 export async function reserveWasher(washerId:string,userId:string){
  const db=getDb(), now=new Date(), next=transition('IDLE','RESERVE'); const [updated]=await db.update(washers).set({state:next,currentUserId:userId,reservedAt:now,updatedAt:now,pushSentAt:null}).where(and(eq(washers.id,washerId),eq(washers.state,'IDLE'))).returning();
- if(!updated)throw new HttpError(409,'방금 다른 사용자가 이 세탁기를 등록했습니다.');
+ if(!updated)throw new HttpError(409,'방금 다른 사용자가 이 세탁기를 등록했어요.');
  await db.insert(sessions).values({id:randomUUID(),washerId,userId,status:'RESERVED',reservedAt:now});await db.insert(events).values({id:randomUUID(),washerId,type:'RESERVE',createdAt:now});return updated;
 }
 export async function cancelReservation(washerId:string,userId:string){
  const db=getDb(), now=new Date(),next=transition('RESERVED','RESET');const [updated]=await db.update(washers).set({state:next,currentUserId:null,reservedAt:null,updatedAt:now}).where(and(eq(washers.id,washerId),eq(washers.state,'RESERVED'),eq(washers.currentUserId,userId))).returning();
- if(!updated)throw new HttpError(409,'등록을 취소할 수 없습니다.');await db.insert(events).values({id:randomUUID(),washerId,type:'CANCEL_RESERVATION',createdAt:now});await db.update(sessions).set({status:'CANCELLED',updatedAt:now}).where(and(eq(sessions.washerId,washerId),eq(sessions.userId,userId),eq(sessions.status,'RESERVED')));return updated;
+ if(!updated)throw new HttpError(409,'등록을 취소할 수 없어요.');await db.insert(events).values({id:randomUUID(),washerId,type:'CANCEL_RESERVATION',createdAt:now});await db.update(sessions).set({status:'CANCELLED',updatedAt:now}).where(and(eq(sessions.washerId,washerId),eq(sessions.userId,userId),eq(sessions.status,'RESERVED')));return updated;
 }
 export async function processPickupReminders(now=new Date()){
  const db=getDb(), active=await db.select().from(sessions).where(and(eq(sessions.status,'FINISHED'),gte(sessions.finishedAt,new Date(now.getTime()-60*60_000))));let sent=0;

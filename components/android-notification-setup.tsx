@@ -37,10 +37,10 @@ export function AndroidNotificationSetup({ onComplete }: { onComplete: (permissi
 
   return <div className="onboarding-backdrop">
     <section className="onboarding-card" aria-labelledby="notification-setup-title">
-      <h1 id="notification-setup-title">세탁 완료 알림을 받아보세요</h1>
-      <p className="lead">세탁이 끝나거나 수거를 잊으면 알려드려요.</p>
-      <div className="action-stack">
-        <button className="button" type="button" disabled={busy} onClick={() => void requestPermission()}>{busy ? '권한 확인 중…' : '알림 허용하고 시작하기'}</button>
+      <h1 id="notification-setup-title">세탁이 끝나면 알림을 보내드려요</h1>
+      <p className="lead">세탁이 끝나거나 수거를 잊었을 때 알려드려요.</p>
+      <div className="onboarding-actions">
+        <button className="button" type="button" disabled={busy} onClick={() => void requestPermission()}>{busy ? '권한을 확인하는 중…' : '알림 허용하고 시작하기'}</button>
         <button className="button secondary" type="button" disabled={busy} onClick={skip}>나중에 하기</button>
       </div>
     </section>
