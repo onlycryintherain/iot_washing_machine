@@ -7,6 +7,7 @@ import type { WasherSummary } from '@/lib/washer/presentation';
 import { washerPresentation } from '@/lib/washer/presentation';
 import { WasherStatus } from '@/components/washer-status';
 import { WasherTiming } from '@/components/washer-timing';
+import { WasherIllustration } from '@/components/washer-illustration';
 
 type Washer = WasherSummary & {
   reservedAt: string | null;
@@ -116,6 +117,7 @@ export default function WasherPage({ params }: { params: Promise<{ washerId: str
     </> : <>
       <h1>{washer.name}</h1>
       <section className="status-panel" aria-label="현재 세탁기 상태">
+        <div className={`wm-stage ${status?.tone}`}><WasherIllustration state={washer.state} size={176} label={status?.label} /></div>
         <WasherStatus state={washer.state} />
         <h2 className="status-big">{headline}</h2>
         {washer.startedAt && (washer.state === 'RUNNING' || washer.state === 'MAYBE_FINISHED')

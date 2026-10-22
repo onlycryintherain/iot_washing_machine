@@ -14,7 +14,7 @@ export default function WashersPage() {
     <p className="lead">세탁기를 고르거나, 세탁기에 붙은 QR을 스캔해서 바로 열 수 있어요.</p>
     <section className="section" aria-label="세탁기 목록">
       {error && <p className="notice" role="status">{error} <button className="text-link" type="button" onClick={() => location.reload()}>다시 시도</button></p>}
-      {washers.map((washer) => <WasherRow key={washer.id} washer={washer} />)}
+      {washers.map((washer, index) => <WasherRow key={washer.id} washer={washer} index={index} />)}
       {!loaded && <p className="muted" role="status">세탁기 상태를 불러오는 중이에요…</p>}
       {loaded && !error && washers.length === 0 && <p className="muted">등록된 세탁기가 아직 없어요.</p>}
     </section>
