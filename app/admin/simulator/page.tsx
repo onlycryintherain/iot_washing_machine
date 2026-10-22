@@ -200,7 +200,7 @@ export default function Simulator() {
   async function processReminders() {
     try {
       const result = await request({ action: 'process-reminders' });
-      showMessage(`완료 알림 ${result.completions.sent}건, 수거 알림 ${result.reminders.sent}건을 전송했습니다.`);
+      showMessage(`곧 끝나요 알림 ${result.endingSoon.sent}건, 완료 알림 ${result.completions.sent}건, 수거 알림 ${result.reminders.sent}건을 전송했습니다.`);
     } catch { /* request already shows the error */ }
   }
 

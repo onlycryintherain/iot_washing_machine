@@ -1,10 +1,12 @@
-import { and, desc, eq, gte, inArray, isNull } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNull, lte } from 'drizzle-orm';
 import { randomUUID } from 'node:crypto';
 import { getDb } from '@/lib/db';
 import { events, reminderLog, sessions, washers } from '@/lib/db/schema';
 import { transition, type WasherEvent, type WasherState } from './state-machine';
 import { HttpError } from '@/lib/errors';
 import { sendUserPush } from '@/lib/push/service';
+import { describeError } from '@/lib/errors';
+import { ENDING_SOON_MINUTES, endingSoonDelayMs } from './simulation';
 export async function processWasherEvent(washerId:string,event:WasherEvent,sensors?:{vibration?:number;current?:number;doorOpen?:boolean},timestamp=new Date()) {
   const db=getDb(); const [washer]=await db.select().from(washers).where(eq(washers.id,washerId)).limit(1); if(!washer)throw new HttpError(404,'Washer not found');
   const next=transition(washer.state as WasherState,event);
@@ -21,7 +23,10 @@ export async function processWasherEvent(washerId:string,event:WasherEvent,senso
   const [updated]=await db.update(washers).set(changes).where(and(eq(washers.id,washerId),eq(washers.state,washer.state))).returning();
   if(!updated)throw new HttpError(409,'Washer state changed; refresh and retry');
   await db.insert(events).values({id:randomUUID(),washerId,type:event,vibration:sensors?.vibration,current:sensors?.current,doorOpen:sensors?.doorOpen??(event==='DOOR_OPEN'?true:undefined),createdAt:timestamp});
-  if(event==='START')await db.update(sessions).set({status:'RUNNING',startedAt:timestamp,updatedAt:timestamp}).where(and(eq(sessions.washerId,washerId),eq(sessions.status,'RESERVED')));
+  if(event==='START'){
+    const started=await db.update(sessions).set({status:'RUNNING',startedAt:timestamp,updatedAt:timestamp}).where(and(eq(sessions.washerId,washerId),eq(sessions.status,'RESERVED'))).returning({id:sessions.id});
+    for(const session of started)scheduleEndingSoon(session.id);
+  }
   if(event==='RESERVE'&&washer.currentUserId){await db.update(sessions).set({status:'RESERVED',updatedAt:timestamp}).where(and(eq(sessions.washerId,washerId),eq(sessions.userId,washer.currentUserId),isNull(sessions.finishedAt)));}
   if(next==='FINISHED'&&washer.state!=='FINISHED'){
     const [session]=await db.select().from(sessions).where(and(eq(sessions.washerId,washerId),eq(sessions.status,'RUNNING'))).orderBy(desc(sessions.createdAt)).limit(1);
@@ -77,4 +82,36 @@ export async function processPickupReminders(now=new Date()){
   }catch(e){await db.delete(reminderLog).where(eq(reminderLog.id,claim.id));console.error('Pickup reminder push failed',e instanceof Error?e.message:'Unknown error');}
  }
  return {processed:active.length,sent};
+}
+
+// "About 5 minutes left" heads-up. The claim (a conditional UPDATE) makes it at-most-once per wash, whichever of the timer or the minute tick gets there first.
+export async function notifyEndingSoon(sessionId:string,now=new Date()){
+  const db=getDb();
+  const [claimed]=await db.update(sessions).set({endingSoonNotificationSentAt:now,updatedAt:now}).where(and(eq(sessions.id,sessionId),eq(sessions.status,'RUNNING'),isNull(sessions.endingSoonNotificationSentAt))).returning();
+  if(!claimed)return 0;
+  const [washer]=await db.select({name:washers.name}).from(washers).where(eq(washers.id,claimed.washerId)).limit(1);
+  try{
+    const result=await sendUserPush(claimed.userId,{title:'곧 끝나요',body:`${washer?.name??'세탁기'} 세탁이 약 ${ENDING_SOON_MINUTES}분 뒤에 끝나요. 세탁물 꺼낼 준비를 해주세요.`,url:`/washer/${claimed.washerId}`,washerId:claimed.washerId,type:'WASH_ENDING_SOON'});
+    // Delivery failed everywhere: let the next tick retry. No devices at all is final.
+    if(result.failed>0&&result.sent===0)await db.update(sessions).set({endingSoonNotificationSentAt:null}).where(eq(sessions.id,sessionId));
+    return result.sent;
+  }catch(error){
+    await db.update(sessions).set({endingSoonNotificationSentAt:null}).where(eq(sessions.id,sessionId));
+    console.error('Ending-soon push failed',describeError(error));
+    return 0;
+  }
+}
+// Fires at the exact moment (a minute tick is far too coarse for a 12 s demo cycle); lost on restart, so the tick below backs it up.
+export function scheduleEndingSoon(sessionId:string){
+  const timers=((globalThis as {endingSoonTimers?:Map<string,NodeJS.Timeout>}).endingSoonTimers??=new Map());
+  if(timers.has(sessionId))return;
+  const timer=setTimeout(()=>{timers.delete(sessionId);notifyEndingSoon(sessionId).catch(error=>console.error('Ending-soon timer failed',describeError(error)));},endingSoonDelayMs());
+  timer.unref?.();
+  timers.set(sessionId,timer);
+}
+export async function processEndingSoonNotifications(now=new Date()){
+  const due=await getDb().select({id:sessions.id}).from(sessions).where(and(eq(sessions.status,'RUNNING'),isNull(sessions.endingSoonNotificationSentAt),lte(sessions.startedAt,new Date(now.getTime()-endingSoonDelayMs())),gte(sessions.startedAt,new Date(now.getTime()-60*60_000)))).limit(100);
+  let sent=0;
+  for(const session of due)sent+=await notifyEndingSoon(session.id,now);
+  return {processed:due.length,sent};
 }

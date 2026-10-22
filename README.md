@@ -117,6 +117,7 @@ docker compose up -d --build
 docker compose logs -f app  # "Reminder scheduler started" 확인
 ```
 
+- **"곧 끝나요" 알림:** 세탁이 시작되면 끝나기 5분 전(화면 기준, 시뮬레이터에서는 약 10.75초 뒤) 한 번 알려요. 서버 타이머가 정확한 시각에 보내고, 서버가 재시작돼 타이머가 사라져도 1분 주기 확인이 같은 알림을 놓치지 않고 한 번만 보냅니다.
 - **알림 자동 처리:** `ENABLE_SCHEDULER=true`이면 앱 프로세스가 1분마다 완료 알림과 수거 리마인더(종료 2분 후)를 처리합니다(`instrumentation.ts`, `lib/washer/scheduler.ts`). 외부 cron이 필요 없고, 모든 처리는 중복 실행에도 안전합니다. 앱 컨테이너는 한 개만 실행하세요.
 - **업데이트:** `git pull && docker compose up -d --build`. DB 볼륨(`db-data`)은 유지됩니다.
 - **백업:** `backup` 컨테이너가 하루 한 번 `./backups/laundry-YYYY-MM-DD.dump`를 만들고 7일치를 보관합니다. 복원은 `docker compose exec -T db pg_restore -U laundry -d laundry --clean < backups/<파일>.dump`입니다.

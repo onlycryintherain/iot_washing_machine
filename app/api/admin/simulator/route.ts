@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { asc, eq } from 'drizzle-orm';
 import { getDb } from '@/lib/db';
 import { subscriptions, washers, users } from '@/lib/db/schema';
-import { processPendingCompletionNotifications, processPickupReminders, processWasherEvent, reserveWasher } from '@/lib/washer/service';
+import { processEndingSoonNotifications, processPendingCompletionNotifications, processPickupReminders, processWasherEvent, reserveWasher } from '@/lib/washer/service';
 import { createUser } from '@/lib/auth/identity';
 import { apiError, requireAdmin, unauthorized } from '@/lib/http';
 import { deviceEventSchema } from '@/lib/validation';
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
   if (!requireAdmin(request)) return unauthorized('인증이 필요합니다.');
   try {
     const data = schema.parse(await request.json());
-    if (data.action === 'process-reminders') return NextResponse.json({ completions: await processPendingCompletionNotifications(), reminders: await processPickupReminders() });
+    if (data.action === 'process-reminders') return NextResponse.json({ endingSoon: await processEndingSoonNotifications(), completions: await processPendingCompletionNotifications(), reminders: await processPickupReminders() });
     if (data.action === 'device-event') {
       // Goes through the device endpoint so the simulator exercises the same auth, validation and payload shape as the ESP32.
       // Call this server over loopback: request.url reflects the public (proxied, https) origin, which is not reachable as-is.

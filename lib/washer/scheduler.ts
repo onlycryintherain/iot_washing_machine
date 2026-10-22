@@ -1,5 +1,5 @@
 import { describeError } from '@/lib/errors';
-import { processPendingCompletionNotifications, processPickupReminders } from './service';
+import { processEndingSoonNotifications, processPendingCompletionNotifications, processPickupReminders } from './service';
 
 const INTERVAL_MS = 60_000;
 
@@ -12,6 +12,7 @@ export function startReminderScheduler() {
     if (running) return;
     running = true;
     try {
+      await processEndingSoonNotifications();
       await processPendingCompletionNotifications();
       await processPickupReminders();
     } catch (error) {

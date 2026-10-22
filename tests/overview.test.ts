@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { crowdLevel, hourlyCounts, kstHour, startOfKstDay, summarizeToday } from '@/lib/stats/overview';
-import { toDisplayMinutes } from '@/lib/washer/simulation';
+import { endingSoonDelayMs, toDisplayMinutes } from '@/lib/washer/simulation';
 
 // 2026-03-02 12:00 UTC is 21:00 in Korea.
 const NOW = Date.UTC(2026, 2, 2, 12, 0, 0);
@@ -58,5 +58,16 @@ describe('durations', () => {
     expect(toDisplayMinutes(12_000)).toBe(48);
     expect(toDisplayMinutes(6_000)).toBe(24);
     expect(toDisplayMinutes(10)).toBe(1);
+  });
+});
+
+describe('endingSoonDelayMs', () => {
+  it('lands five displayed minutes before the end of the compressed cycle', () => {
+    expect(endingSoonDelayMs()).toBe(10_750);
+    expect(endingSoonDelayMs(10)).toBe(9_500);
+    expect(endingSoonDelayMs(48)).toBe(0);
+  });
+  it('never goes negative when asked for more time than the cycle has', () => {
+    expect(endingSoonDelayMs(60)).toBe(0);
   });
 });
