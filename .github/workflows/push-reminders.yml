@@ -1,8 +1,9 @@
 name: Send laundry notifications
 
+# Manual only. A recurring schedule keeps the Neon compute awake around the clock and
+# exhausts the free-plan CU-hours; run this (or the simulator's "대기 중인 알림 처리"
+# button) when a pickup reminder needs to be sent.
 on:
-  schedule:
-    - cron: '2-59/5 * * * *'
   workflow_dispatch:
 
 permissions:

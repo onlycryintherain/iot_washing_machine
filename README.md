@@ -94,7 +94,14 @@ Neon에서 PostgreSQL 프로젝트를 만들고 연결 문자열을 `DATABASE_UR
 
 Production: https://iotwashingmachine.vercel.app
 
-`vercel.json`은 Vercel Functions를 싱가포르(`sin1`)에서 실행하도록 설정합니다. Vercel 환경에는 `DATABASE_URL`, VAPID 변수, `DEVICE_API_SECRET`, `ADMIN_PASSWORD`가 필요합니다. 실제 도메인 HTTPS에서 PWA 설치 및 Push 구독을 확인합니다. 내부 알림 처리 endpoint는 `POST /api/internal/process-reminders`이며 `DEVICE_API_SECRET` bearer 인증을 사용합니다. Neon `main` 브랜치의 `notify` Function과 `laundry-notifications-minute` Trigger가 매분 이 endpoint를 호출합니다. Function 환경변수의 `DEVICE_API_SECRET`도 Vercel과 일치해야 합니다. GitHub Actions의 5분 주기 작업은 보조 수단입니다. 예약 실행 시각과 실제 Push 도착 시각은 서비스 부하·기기 상태에 따라 조금 달라질 수 있습니다.
+`vercel.json`은 Vercel Functions를 싱가포르(`sin1`)에서 실행하도록 설정합니다. Vercel 환경에는 `DATABASE_URL`, VAPID 변수, `DEVICE_API_SECRET`, `ADMIN_PASSWORD`가 필요합니다. 실제 도메인 HTTPS에서 PWA 설치 및 Push 구독을 확인합니다. 내부 알림 처리 endpoint는 `POST /api/internal/process-reminders`이며 `DEVICE_API_SECRET` bearer 인증을 사용합니다.
+
+**알림 처리는 자동 주기 실행을 하지 않습니다.** Neon 무료 플랜은 프로젝트당 월 100 CU-시간이고, 1~5분 간격으로 DB를 호출하면 컴퓨트가 꺼지지 않아 한도를 몇 주 만에 소진합니다(이전 프로젝트가 이렇게 한도에 걸렸습니다). 세탁 완료 알림은 종료 이벤트가 도착하는 즉시 전송되므로 영향이 없고, 수거 리마인더(종료 2분 후)만 아래 방법으로 직접 실행합니다.
+
+- `/admin/simulator`의 **대기 중인 알림 처리** 버튼
+- GitHub Actions의 *Send laundry notifications* 워크플로 수동 실행 (`workflow_dispatch`)
+
+`neon-functions/notify`는 Neon Function Trigger용 예제로 남겨두었지만 배포하지 않습니다. 실서비스에서 주기 실행이 필요하면 유료 플랜이나 컴퓨트가 꺼지지 않아도 되는 호스팅을 쓰세요. 예약 실행 시각과 실제 Push 도착 시각은 서비스 부하·기기 상태에 따라 조금 달라질 수 있습니다.
 
 ## PWA test checklist
 
