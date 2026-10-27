@@ -32,7 +32,7 @@ Simulator 및 향후 ESP32는 같은 washer service/state machine 경로를 이�
 
 진동 모터는 발표용으로 세탁기 진동을 흉내 내는 용도이고, 센서와 같은 판에 고정합니다. 케이스는 3D 프린팅입니다. 1호기와 2호기는 부품과 기능이 완전히 같고 서버의 `washerId`만 다릅니다.
 
-배선도: 전체 [docs/wiring-system.svg](docs/wiring-system.svg), 세탁기 노드 상세 [docs/wiring-washer-node.svg](docs/wiring-washer-node.svg). ESP32는 노드 2대와 현황판 1대가 각각 독립이고, 세탁기는 장난감 없이 3D 프린팅 케이스에 실제 진동 모터를 넣어 시연합니다.
+배선도: 전체 [docs/wiring-system.svg](docs/wiring-system.svg), 세탁기 노드 상세 [docs/wiring-washer-node.svg](docs/wiring-washer-node.svg), 현황판 상세 [docs/wiring-status-board.svg](docs/wiring-status-board.svg). ESP32는 노드 2대와 현황판 1대가 각각 독립이고, 세탁기는 장난감 없이 3D 프린팅 케이스에 실제 진동 모터를 넣어 시연합니다.
 
 | ESP32 | 연결 |
 |---|---|

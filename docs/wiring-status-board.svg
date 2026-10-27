@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="790" viewBox="0 0 1200 790" role="img" aria-labelledby="title desc">
+  <title id="title">현황판 배선도 (ESP32 + ILI9341 터치 TFT)</title>
+  <desc id="desc">ESP32 한 대와 2.8인치 ILI9341 터치 TFT를 SPI로 연결하는 배선도. LCD와 터치는 SCK, MOSI, MISO를 공유하고 CS로 구분한다.</desc>
+  <defs><style>
+    text{font-family:'Malgun Gothic','Segoe UI',sans-serif;fill:#17251f}
+    .title{font-size:28px;font-weight:750}.sub{font-size:15px;fill:#53655a}
+    .esp{fill:#eaf5eb;stroke:#3c7959;stroke-width:3}.tft{fill:#e9f0fa;stroke:#3e649c;stroke-width:3}
+    .h{font-size:19px;font-weight:700}.pin{font-size:15px;font-weight:650}.note{font-size:14px;fill:#526258}
+    .sig{fill:none;stroke:#3e649c;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    .p3{fill:none;stroke:#c0392b;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    .gnd{fill:none;stroke:#4b5761;stroke-width:3;stroke-linecap:round}.dot{fill:#17251f}
+  </style></defs>
+  <rect width="1200" height="790" fill="#fbfdfb"/>
+  <text x="40" y="44" class="title">현황판 배선도 (ESP32 #3 + ILI9341 터치 TFT)</text>
+  <text x="40" y="68" class="sub">파랑=신호 빨강=3.3V 회색=GND  ·  LCD와 터치는 SCK/MOSI/MISO를 공유하고 CS로 구분</text>
+  <rect class="esp" x="120" y="100" width="240" height="580" rx="16"/>
+  <text x="240" y="132" class="h" text-anchor="middle">ESP32 DevKitC</text>
+  <text x="240" y="152" class="note" text-anchor="middle">USB 5V 전원</text>
+  <rect class="tft" x="900" y="100" width="260" height="580" rx="16"/>
+  <text x="1030" y="132" class="h" text-anchor="middle">ILI9341 2.8" TFT</text>
+  <text x="1030" y="152" class="note" text-anchor="middle">LCD + 터치 (3.3V 전용)</text>
+  <text x="916" y="175" class="pin">VCC</text>
+  <text x="916" y="211" class="pin">GND</text>
+  <text x="916" y="247" class="pin">CS</text>
+  <text x="916" y="283" class="pin">RESET</text>
+  <text x="916" y="319" class="pin">DC</text>
+  <text x="916" y="355" class="pin">SDI (MOSI)</text>
+  <text x="916" y="391" class="pin">T_DIN</text>
+  <text x="916" y="427" class="pin">SCK</text>
+  <text x="916" y="463" class="pin">T_CLK</text>
+  <text x="916" y="499" class="pin">SDO (MISO)</text>
+  <text x="916" y="535" class="pin">T_DO</text>
+  <text x="916" y="571" class="pin">LED (백라이트)</text>
+  <text x="916" y="607" class="pin">T_CS</text>
+  <text x="916" y="643" class="pin">T_IRQ</text>
+  <text x="346" y="164" class="pin" text-anchor="end">3V3</text>
+  <path class="p3" d="M360 170 H900"/>
+  <path class="p3" d="M640 170 V566 H900"/><circle class="dot" cx="640" cy="170" r="5"/>
+  <text x="346" y="200" class="pin" text-anchor="end">GND</text>
+  <path class="gnd" d="M360 206 H900"/>
+  <text x="346" y="236" class="pin" text-anchor="end">GPIO5</text>
+  <path class="sig" d="M360 242 H900"/>
+  <text x="346" y="272" class="pin" text-anchor="end">GPIO4</text>
+  <path class="sig" d="M360 278 H900"/>
+  <text x="346" y="308" class="pin" text-anchor="end">GPIO16</text>
+  <path class="sig" d="M360 314 H900"/>
+  <text x="346" y="344" class="pin" text-anchor="end">GPIO23 (MOSI)</text>
+  <path class="sig" d="M360 350 H900"/>
+  <path class="sig" d="M700 350 V386 H900"/><circle class="dot" cx="700" cy="350" r="5"/>
+  <text x="346" y="416" class="pin" text-anchor="end">GPIO18 (SCK)</text>
+  <path class="sig" d="M360 422 H900"/>
+  <path class="sig" d="M700 422 V458 H900"/><circle class="dot" cx="700" cy="422" r="5"/>
+  <text x="346" y="488" class="pin" text-anchor="end">GPIO19 (MISO)</text>
+  <path class="sig" d="M360 494 H900"/>
+  <path class="sig" d="M700 494 V530 H900"/><circle class="dot" cx="700" cy="494" r="5"/>
+  <text x="346" y="596" class="pin" text-anchor="end">GPIO21</text>
+  <path class="sig" d="M360 602 H900"/>
+  <text x="346" y="632" class="pin" text-anchor="end">GPIO22</text>
+  <path class="sig" d="M360 638 H900"/>
+  <text x="40" y="716" class="note">모듈마다 핀 순서가 다르니 기판에 인쇄된 이름(CS, DC, SDI, T_CS 등)을 보고 연결하세요. 점은 한 신호가 두 핀으로 갈라지는 곳.</text>
+  <text x="40" y="740" class="note">GPIO 0·2·12·15는 부팅 핀이라 쓰지 않았어요. 터치 방식은 상품 페이지에 없어, 받은 뒤 TFT_eSPI로 확인하고 보정하세요.</text>
+  <text x="40" y="764" class="note">LED(백라이트)는 3V3에 바로 연결. 밝기 조절이 필요하면 GPIO + 트랜지스터를 추가하세요.</text>
+</svg>
