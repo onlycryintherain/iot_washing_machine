@@ -32,7 +32,7 @@ Simulator 및 향후 ESP32는 같은 washer service/state machine 경로를 이�
 
 진동 모터는 발표용으로 세탁기 진동을 흉내 내는 용도이고, 센서와 같은 판에 고정합니다. 케이스는 3D 프린팅입니다. 실제 세탁기는 쓸 수 없어서 기존 세탁기에 붙이는 센서 키트를 모형 세탁기 1대로 시연합니다. 핵심 부품은 하나씩 예비로 더 둡니다.
 
-배선도: 전체 [docs/wiring-system.svg](docs/wiring-system.svg), 세탁기 노드 상세 [docs/wiring-washer-node.svg](docs/wiring-washer-node.svg). ESP32 보드는 DevKitC와 ESP32-CAM 2개이고 서로 독립이며, 세탁기는 장난감 없이 3D 프린팅 케이스에 실제 진동 모터를 넣어 시연합니다.
+외관: [docs/mock-washer-exterior.svg](docs/mock-washer-exterior.svg) (정면도, 측면 단면도, 시연 배치도). 배선도: 전체 [docs/wiring-system.svg](docs/wiring-system.svg), 세탁기 노드 상세 [docs/wiring-washer-node.svg](docs/wiring-washer-node.svg). ESP32 보드는 DevKitC와 ESP32-CAM 2개이고 서로 독립이며, 세탁기는 장난감 없이 3D 프린팅 케이스에 실제 진동 모터를 넣어 시연합니다.
 
 | ESP32 | 연결 |
 |---|---|
@@ -64,6 +64,15 @@ Simulator 및 향후 ESP32는 같은 washer service/state machine 경로를 이�
 - **개인정보:** 사용자 이름과 학번은 현황판에 표시하지 않습니다.
 - **읽기 API:** `GET /api/display/washers`는 `Authorization: Bearer <DEVICE_API_SECRET>`가 필요하고 `{ now, total, available, washers: [{ id, name, status, state, minutesLeft, endsAt }] }`를 돌려줍니다. 사용자 정보는 들어 있지 않습니다. 종료 예정 시각 `endsAt`은 `지금 + minutesLeft`라서 화면의 남은 시간과 맞습니다.
 - **일시정지:** `RUNNING`/`MAYBE_FINISHED` + `PAUSE` → `PAUSED`, `PAUSED` + `RESUME` → `RUNNING`입니다. 앱에서는 세탁기 주인만 `POST /api/washers/:id/pause`, `POST /api/washers/:id/resume`을 부를 수 있고, 멈춰 있던 시간은 세탁 시간에 포함되지 않습니다.
+
+## 세탁 만족도 평가
+
+수거를 마치면 앱의 "내 세탁" 화면에 평가 카드가 뜹니다(수거 후 48시간 안, 세션당 한 번). 별점 1~5점과 불편한 점(이물질·보풀, 냄새, 얼룩, 물기, 소음·진동, 누수)을 고르고, 원하면 한 줄을 남깁니다.
+
+- 관리자 화면의 "세탁 만족도"는 최근 14일 평가를 세탁기별로 모아 평균 점수와 불편한 점 건수를 보여주고, 사용자 이름은 보여주지 않습니다.
+- 한 기계에서 같은 불편이 30% 이상(2건 이상) 나오면 점검 안내가 뜹니다. 필터가 없는 세탁기에서 옷에 이물질이 붙는 문제는 `이물질·보풀` 항목으로 모이고, "필터·배수구 점검" 안내로 이어집니다. 누수는 한 건만 있어도 긴급으로 표시합니다. 평균 3.5점 미만이면 낮은 만족도로 표시합니다.
+- API: `GET /api/feedback`(아직 평가하지 않은 세탁), `POST /api/feedback`(평가 보내기), `GET /api/admin/feedback`(관리자). 테이블은 마이그레이션 `0005`의 `wash_feedback`입니다.
+- `npm run db:seed-demo`는 데모 세션마다 평가도 만들고, 마지막 세탁기는 이물질이 자주 나오는 기계로 만들어 점검 안내를 볼 수 있게 합니다.
 
 ## Stack
 
