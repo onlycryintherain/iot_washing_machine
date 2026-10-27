@@ -67,7 +67,7 @@ async function main() {
     }
     if (process.argv.includes('--clean')) return;
 
-    const washerIds = (await client.query('SELECT id FROM washers ORDER BY id')).rows.map((row) => row.id);
+    const washerIds = (await client.query("SELECT id FROM washers WHERE state <> 'OUT_OF_ORDER' ORDER BY id")).rows.map((row) => row.id);
     if (!washerIds.length) throw new Error('No washers found. Run the migration first.');
     const userId = randomUUID();
     const tokenHash = createHash('sha256').update(randomBytes(32)).digest('hex');

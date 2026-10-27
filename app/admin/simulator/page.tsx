@@ -23,7 +23,7 @@ type Washer = {
 type User = { id: string; ids: string[]; nickname: string; studentId: string | null; hasPush: boolean };
 type SimulatorData = { washers: Washer[]; users: User[] };
 
-const deviceEvents = ['START', 'ACTIVITY', 'NO_ACTIVITY', 'RESUME', 'FINISH', 'DOOR_OPEN', 'PICKUP', 'RESET'] as const;
+const deviceEvents = ['START', 'ACTIVITY', 'NO_ACTIVITY', 'RESUME', 'FINISH', 'DOOR_OPEN', 'PICKUP', 'RESET', 'PAUSE'] as const;
 
 const stateNames: Record<WasherState, string> = {
   IDLE: '사용 가능',
@@ -32,6 +32,8 @@ const stateNames: Record<WasherState, string> = {
   MAYBE_FINISHED: '종료 확인 중',
   FINISHED: '세탁 완료',
   WAITING_FOR_PICKUP: '수거 대기',
+  PAUSED: '일시정지',
+  OUT_OF_ORDER: '사용 불가',
 };
 
 export default function Simulator() {

@@ -51,4 +51,5 @@ export const eventLabels: Record<string, string> = {
   DOOR_OPEN: '문 열림',
   PICKUP: '수거 완료',
   RESET: '초기화',
+  PAUSE: '일시정지',
 };

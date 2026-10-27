@@ -60,9 +60,11 @@ Simulator 및 향후 ESP32는 같은 washer service/state machine 경로를 이�
                                    └───────────────────────┘
 ```
 
-- **상태 표시(제안):** `IDLE`은 사용가능, `RESERVED`·`RUNNING`·`MAYBE_FINISHED`는 사용중, `FINISHED`(수거 대기)는 사용불가로 보여줍니다.
+- **세탁기 4대:** 1·2번은 실제 노드가 붙는 세탁기이고, 3·4번은 현황판 시연용으로 `OUT_OF_ORDER`(사용불가) 상태로 둡니다(마이그레이션 0004).
+- **상태 표시:** `IDLE`은 `available`(사용가능), `RESERVED`·`RUNNING`·`MAYBE_FINISHED`·`PAUSED`는 `in_use`(사용중), `FINISHED`·`WAITING_FOR_PICKUP`·`OUT_OF_ORDER`는 `unavailable`(사용불가)로 내려줍니다.
 - **개인정보:** 사용자 이름과 학번은 현황판에 표시하지 않습니다.
-- **읽기 API:** `GET /api/display/washers`를 새로 만들고 장치 키로 보호합니다. 지금 `GET /api/washers`는 응답에 `currentUserId`가 들어 있고 `GET /api/overview`는 사용자 인증이 필요해서 현황판에 쓰지 않습니다. 남은 시간과 종료 예정 시각은 서버가 계산해 내려줍니다.
+- **읽기 API:** `GET /api/display/washers`는 `Authorization: Bearer <DEVICE_API_SECRET>`가 필요하고 `{ now, total, available, washers: [{ id, name, status, state, minutesLeft, endsAt }] }`를 돌려줍니다. 사용자 정보는 들어 있지 않습니다. 종료 예정 시각 `endsAt`은 `지금 + minutesLeft`라서 화면의 남은 시간과 맞습니다.
+- **일시정지:** `RUNNING`/`MAYBE_FINISHED` + `PAUSE` → `PAUSED`, `PAUSED` + `RESUME` → `RUNNING`입니다. 앱에서는 세탁기 주인만 `POST /api/washers/:id/pause`, `POST /api/washers/:id/resume`을 부를 수 있고, 멈춰 있던 시간은 세탁 시간에 포함되지 않습니다. 노드는 이벤트 응답의 `washer.state`가 `PAUSED`일 때 서보 도어락을 풉니다.
 
 ## Stack
 

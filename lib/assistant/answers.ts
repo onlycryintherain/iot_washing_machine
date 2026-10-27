@@ -56,6 +56,8 @@ function describe(washer: AssistantWasher, now: number) {
     case 'RESERVED': return '사용자가 등록되어 세탁 시작을 기다리고 있어요';
     case 'RUNNING':
     case 'MAYBE_FINISHED': return etaText(washer, now);
+    case 'PAUSED': return '주인이 세탁을 잠시 멈춘 상태예요';
+    case 'OUT_OF_ORDER': return '지금은 사용할 수 없어요';
     default: return '세탁은 끝났고 세탁물 수거를 기다리고 있어요';
   }
 }

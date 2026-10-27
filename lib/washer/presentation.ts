@@ -16,6 +16,8 @@ const states: Record<WasherState, { label: string; tone: string; headline: strin
   RUNNING: { label: '세탁 중', tone: 'running', headline: '세탁이 진행 중이에요' },
   MAYBE_FINISHED: { label: '상태 확인 중', tone: 'checking', headline: '세탁 상태를 확인하고 있어요' },
   FINISHED: { label: '세탁 완료', tone: 'finished', headline: '세탁이 끝났어요' },
+  PAUSED: { label: '일시정지', tone: 'checking', headline: '주인이 세탁을 잠시 멈췄어요' },
+  OUT_OF_ORDER: { label: '사용 불가', tone: 'pickup', headline: '지금은 사용할 수 없어요' },
   WAITING_FOR_PICKUP: { label: '수거 대기', tone: 'pickup', headline: '세탁물을 가져가 주세요' },
 };
 

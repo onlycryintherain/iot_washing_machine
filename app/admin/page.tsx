@@ -20,7 +20,7 @@ type Item = {
 type Person = { id: string; ids: string[]; nickname: string; studentId: string | null; createdAt: string; hasPush: boolean; pushDevices: number; deviceCount: number };
 const stateLabel: Record<string, string> = {
   IDLE: '사용 가능', RESERVED: '시작 대기', RUNNING: '세탁 중', MAYBE_FINISHED: '종료 확인 중',
-  FINISHED: '세탁 완료', WAITING_FOR_PICKUP: '수거 대기',
+  FINISHED: '세탁 완료', WAITING_FOR_PICKUP: '수거 대기', PAUSED: '일시정지', OUT_OF_ORDER: '사용 불가',
 };
 
 function timeLabel(value: string | null) {

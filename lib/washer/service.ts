@@ -14,7 +14,11 @@ export async function processWasherEvent(washerId:string,event:WasherEvent,senso
   if(event==='START'){changes.startedAt=timestamp;changes.lastActivityAt=timestamp;}
   if(event==='ACTIVITY'||event==='RESUME'){changes.lastActivityAt=timestamp;}
   if(event==='FINISH'){changes.finishedAt=timestamp;}
-  if(event==='PICKUP'||event==='RESET'){changes.currentUserId=null;changes.reservedAt=null;changes.startedAt=null;changes.finishedAt=null;changes.lastActivityAt=null;changes.pushSentAt=null;}
+  if(event==='PAUSE')changes.pausedAt=timestamp;
+  // Time spent paused must not count toward the cycle, so the start moves forward by that long.
+  const resumedFromPause=event==='RESUME'&&washer.state==='PAUSED';
+  if(resumedFromPause){changes.pausedAt=null;if(washer.pausedAt&&washer.startedAt)changes.startedAt=new Date(washer.startedAt.getTime()+Math.max(0,timestamp.getTime()-washer.pausedAt.getTime()));}
+  if(event==='PICKUP'||event==='RESET'){changes.currentUserId=null;changes.reservedAt=null;changes.startedAt=null;changes.finishedAt=null;changes.lastActivityAt=null;changes.pushSentAt=null;changes.pausedAt=null;}
   if(event==='RESET'||event==='PICKUP'){changes.doorOpen=false;changes.vibration=null;changes.current=null;}
   if(event==='DOOR_OPEN')changes.doorOpen=true;
   if(sensors?.doorOpen!==undefined)changes.doorOpen=sensors.doorOpen;
@@ -23,6 +27,7 @@ export async function processWasherEvent(washerId:string,event:WasherEvent,senso
   const [updated]=await db.update(washers).set(changes).where(and(eq(washers.id,washerId),eq(washers.state,washer.state))).returning();
   if(!updated)throw new HttpError(409,'Washer state changed; refresh and retry');
   await db.insert(events).values({id:randomUUID(),washerId,type:event,vibration:sensors?.vibration,current:sensors?.current,doorOpen:sensors?.doorOpen??(event==='DOOR_OPEN'?true:undefined),createdAt:timestamp});
+  if(resumedFromPause&&changes.startedAt)await db.update(sessions).set({startedAt:changes.startedAt,updatedAt:timestamp}).where(and(eq(sessions.washerId,washerId),eq(sessions.status,'RUNNING')));
   if(event==='START'){
     const started=await db.update(sessions).set({status:'RUNNING',startedAt:timestamp,updatedAt:timestamp}).where(and(eq(sessions.washerId,washerId),eq(sessions.status,'RESERVED'))).returning({id:sessions.id});
     for(const session of started)scheduleEndingSoon(session.id);
