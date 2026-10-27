@@ -20,32 +20,31 @@ Simulator 및 향후 ESP32는 같은 washer service/state machine 경로를 이�
 
 ## Hardware plan (스마트 세탁실)
 
-아직 구현 전인 계획입니다. 세탁기 노드는 기존 Device API를 그대로 쓰고, 서버에 새로 필요한 것은 현황판용 읽기 API 하나입니다.
+아직 구현 전인 계획입니다. 세탁기 노드는 기존 Device API를 그대로 쓰고, 남은 시간은 모형 세탁기의 표시창을 ESP32-CAM이 읽어 서버로 보냅니다. 현황판은 별도 하드웨어 없이 앱 화면으로 대신합니다.
 
 | 장치 | 수량 | 구성 | 역할 |
 |---|---|---|---|
-| 세탁기 노드 | 2 | ESP32, MPU6050(진동), I2C LCD 16x2, 상태 LED 3색, 수거 확인 버튼, 진동 모터(+ 2N2222A, 1N4007) | 진동으로 시작·종료를 판정해 Device API로 전송하고 LCD·LED로 현장에 표시 |
-| 서보 도어락 | 세탁기 노드마다 1 | SG90 서보 + 리드 스위치(문 열림 감지) | 세탁 중 잠금, 완료 시 해제, 문 열림 시 주인에게 알림 |
-| 스피커 | 세탁기 노드마다 1 | PAM8403 앰프(ESP32 DAC GPIO25) + 3W 8Ω 스피커 | 완료 시 멜로디 |
-| 층별 현황판 | 1 | ESP32 + ILI9341 2.8인치 터치 TFT | 서버 상태를 5초마다 받아 표시 |
+| 세탁기 노드 | 1 | ESP32, MPU6050(진동), I2C LCD 16x2, 상태 LED 3색, 수거 확인 버튼, 진동 모터(+ 2N2222A, 1N4007) | 진동으로 시작·종료를 판정해 Device API로 전송하고 LCD·LED로 현장에 표시 |
+| 스피커 | 1 | PAM8403 앰프(ESP32 DAC GPIO25) + 3W 8Ω 스피커 | 완료 시 멜로디 |
+| 남은 시간 표시창 | 1 | TM1637 4자리 7세그먼트(GPIO32 CLK, GPIO33 DIO) | 모형 세탁기 앞면에 남은 시간을 표시 |
+| 카메라 | 1 | ESP32-CAM + CH340 업로드 보드(5V 충전기 전원) | 표시창을 10~15cm 거리에서 찍어 서버로 보내 남은 시간을 읽음 |
 | 예비 | 1 | ESP32 | 고장 대비, 펌웨어 개발용 |
 
-진동 모터는 발표용으로 세탁기 진동을 흉내 내는 용도이고, 센서와 같은 판에 고정합니다. 케이스는 3D 프린팅입니다. 1호기와 2호기는 부품과 기능이 완전히 같고 서버의 `washerId`만 다릅니다.
+진동 모터는 발표용으로 세탁기 진동을 흉내 내는 용도이고, 센서와 같은 판에 고정합니다. 케이스는 3D 프린팅입니다. 실제 세탁기는 쓸 수 없어서 기존 세탁기에 붙이는 센서 키트를 모형 세탁기 1대로 시연합니다. 핵심 부품은 하나씩 예비로 더 둡니다.
 
-배선도: 전체 [docs/wiring-system.svg](docs/wiring-system.svg), 세탁기 노드 상세 [docs/wiring-washer-node.svg](docs/wiring-washer-node.svg), 현황판 상세 [docs/wiring-status-board.svg](docs/wiring-status-board.svg). ESP32는 노드 2대와 현황판 1대가 각각 독립이고, 세탁기는 장난감 없이 3D 프린팅 케이스에 실제 진동 모터를 넣어 시연합니다.
+배선도: 전체 [docs/wiring-system.svg](docs/wiring-system.svg), 세탁기 노드 상세 [docs/wiring-washer-node.svg](docs/wiring-washer-node.svg). ESP32 보드는 DevKitC와 ESP32-CAM 2개이고 서로 독립이며, 세탁기는 장난감 없이 3D 프린팅 케이스에 실제 진동 모터를 넣어 시연합니다.
 
 | ESP32 | 연결 |
 |---|---|
 | GPIO21 / GPIO22 | I2C SDA / SCL (MPU6050, LCD1602) |
-| GPIO23 | 리드 스위치 (INPUT_PULLUP, 반대쪽 GND) |
 | GPIO19 | 수거 버튼 (INPUT_PULLUP, 반대쪽 GND) |
 | GPIO16 / 17 / 18 | 빨강 / 노랑 / 초록 LED (각 220Ω) |
 | GPIO27 | 1kΩ → 2N2222A 베이스 (진동 모터, 모터 전원은 3V3) |
-| GPIO13 | SG90 서보 신호 (전원 5V, 1000µF) |
 | GPIO25 | PAM8403 입력 (DAC) |
-| VIN(5V) / 3V3 / GND | 서보·앰프·LCD / MPU6050·모터 / 공통 |
+| GPIO32 / GPIO33 | TM1637 CLK / DIO (전원 5V) |
+| VIN(5V) / 3V3 / GND | 앰프·LCD·TM1637 / MPU6050·모터 / 공통 |
 
-### 현황판 화면
+### 현황판 화면 (앱 화면으로 구현 예정)
 
 ```text
 기본 화면                          세탁기를 누르면
@@ -60,11 +59,11 @@ Simulator 및 향후 ESP32는 같은 washer service/state machine 경로를 이�
                                    └───────────────────────┘
 ```
 
-- **세탁기 4대:** 1·2번은 실제 노드가 붙는 세탁기이고, 3·4번은 현황판 시연용으로 `OUT_OF_ORDER`(사용불가) 상태로 둡니다(마이그레이션 0004).
+- **세탁기 4대:** 1번은 모형 세탁기 노드가 붙는 세탁기이고, 2번은 관리자 시뮬레이터로 구동하며, 3·4번은 현황판 화면 시연용으로 `OUT_OF_ORDER`(사용불가) 상태로 둡니다(마이그레이션 0004).
 - **상태 표시:** `IDLE`은 `available`(사용가능), `RESERVED`·`RUNNING`·`MAYBE_FINISHED`·`PAUSED`는 `in_use`(사용중), `FINISHED`·`WAITING_FOR_PICKUP`·`OUT_OF_ORDER`는 `unavailable`(사용불가)로 내려줍니다.
 - **개인정보:** 사용자 이름과 학번은 현황판에 표시하지 않습니다.
 - **읽기 API:** `GET /api/display/washers`는 `Authorization: Bearer <DEVICE_API_SECRET>`가 필요하고 `{ now, total, available, washers: [{ id, name, status, state, minutesLeft, endsAt }] }`를 돌려줍니다. 사용자 정보는 들어 있지 않습니다. 종료 예정 시각 `endsAt`은 `지금 + minutesLeft`라서 화면의 남은 시간과 맞습니다.
-- **일시정지:** `RUNNING`/`MAYBE_FINISHED` + `PAUSE` → `PAUSED`, `PAUSED` + `RESUME` → `RUNNING`입니다. 앱에서는 세탁기 주인만 `POST /api/washers/:id/pause`, `POST /api/washers/:id/resume`을 부를 수 있고, 멈춰 있던 시간은 세탁 시간에 포함되지 않습니다. 노드는 이벤트 응답의 `washer.state`가 `PAUSED`일 때 서보 도어락을 풉니다.
+- **일시정지:** `RUNNING`/`MAYBE_FINISHED` + `PAUSE` → `PAUSED`, `PAUSED` + `RESUME` → `RUNNING`입니다. 앱에서는 세탁기 주인만 `POST /api/washers/:id/pause`, `POST /api/washers/:id/resume`을 부를 수 있고, 멈춰 있던 시간은 세탁 시간에 포함되지 않습니다.
 
 ## Stack
 
