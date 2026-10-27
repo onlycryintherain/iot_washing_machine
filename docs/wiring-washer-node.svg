@@ -1,0 +1,123 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="860" viewBox="0 0 1400 860" role="img" aria-labelledby="title desc">
+  <title id="title">세탁기 노드 배선도 (1호기·2호기 동일)</title>
+  <desc id="desc">ESP32 한 대에 MPU6050과 LCD(I2C), 리드 스위치, 버튼, LED 3개, 진동 모터(트랜지스터 구동), 서보, PAM8403 앰프와 스피커를 연결하는 배선도.</desc>
+  <defs>
+    <style>
+      text{font-family:'Malgun Gothic','Segoe UI',sans-serif;fill:#17251f}
+      .title{font-size:30px;font-weight:750}.sub{font-size:16px;fill:#53655a}
+      .esp{fill:#eaf5eb;stroke:#3c7959;stroke-width:3}
+      .part{fill:#fff;stroke:#b5c8b9;stroke-width:2.5}
+      .drv{fill:#e9f0fa;stroke:#3e649c;stroke-width:2.5}
+      .pwr{fill:#fff5e7;stroke:#c48427;stroke-width:2.5}
+      .h{font-size:20px;font-weight:700}.t{font-size:15px}.pin{font-size:16px;font-weight:650}.note{font-size:14px;fill:#526258}
+      .sig{fill:none;stroke:#3e649c;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
+      .p3{fill:none;stroke:#c0392b;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
+      .p5{fill:none;stroke:#c48427;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
+      .gnd{fill:none;stroke:#4b5761;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
+      .dot{fill:#17251f}
+    </style>
+  </defs>
+  <rect width="1400" height="860" fill="#fbfdfb"/>
+  <text x="40" y="48" class="title">세탁기 노드 배선도 (1호기·2호기 동일)</text>
+  <text x="40" y="74" class="sub">파랑=신호  빨강=3.3V  주황=5V  회색=GND (모든 GND 공통)  ·  ESP32 DevKitC 30핀 기준 GPIO 번호</text>
+
+  <!-- ESP32 -->
+  <rect class="esp" x="560" y="110" width="280" height="650" rx="18"/>
+  <text x="700" y="148" class="h" text-anchor="middle">ESP32 DevKitC</text>
+  <text x="700" y="170" class="note" text-anchor="middle">USB 5V 전원 (충전기 2A)</text>
+
+  <!-- left pins -->
+  <g class="pin">
+    <text x="574" y="224">GPIO21 SDA</text>
+    <text x="574" y="264">GPIO22 SCL</text>
+    <text x="574" y="304">3V3</text>
+    <text x="574" y="374">GPIO23</text>
+    <text x="574" y="434">GPIO19</text>
+    <text x="574" y="504">GPIO16</text>
+    <text x="574" y="554">GPIO17</text>
+    <text x="574" y="604">GPIO18</text>
+    <text x="574" y="724">GND</text>
+  </g>
+  <!-- right pins -->
+  <g class="pin" text-anchor="end">
+    <text x="826" y="224">GPIO27</text>
+    <text x="826" y="304">3V3</text>
+    <text x="826" y="404">GPIO13</text>
+    <text x="826" y="504">GPIO25 (DAC1)</text>
+    <text x="826" y="604">VIN (5V)</text>
+    <text x="826" y="724">GND</text>
+  </g>
+
+  <!-- I2C box -->
+  <rect class="part" x="40" y="190" width="300" height="130" rx="12"/>
+  <text x="56" y="216" class="h">I2C 버스</text>
+  <text x="56" y="242" class="t">MPU6050 (0x68)  VCC←3V3, GND</text>
+  <text x="56" y="264" class="t">LCD1602 (0x27/0x3F)  VCC←5V, GND</text>
+  <text x="56" y="286" class="t">SDA·SCL은 두 장치에 병렬 연결</text>
+  <text x="56" y="306" class="note">LCD 5V 쪽 SDA가 불안하면 백팩 풀업 점퍼 제거</text>
+  <path class="sig" d="M340 220 H560"/><path class="sig" d="M340 260 H560"/>
+  <path class="p3" d="M340 300 H560"/>
+
+  <!-- reed -->
+  <rect class="part" x="40" y="350" width="300" height="46" rx="10"/>
+  <text x="56" y="379" class="t">리드 스위치 (문 센서): 한쪽 GPIO23, 한쪽 GND</text>
+  <path class="sig" d="M340 370 H560"/>
+  <!-- button -->
+  <rect class="part" x="40" y="410" width="300" height="46" rx="10"/>
+  <text x="56" y="439" class="t">수거 버튼: 한쪽 GPIO19, 한쪽 GND</text>
+  <path class="sig" d="M340 430 H560"/>
+  <!-- LEDs -->
+  <rect class="part" x="40" y="476" width="300" height="150" rx="12"/>
+  <text x="56" y="502" class="t">빨강 LED  GPIO16 → 220Ω → LED → GND</text>
+  <text x="56" y="552" class="t">노랑 LED  GPIO17 → 220Ω → LED → GND</text>
+  <text x="56" y="602" class="t">초록 LED  GPIO18 → 220Ω → LED → GND</text>
+  <path class="sig" d="M340 500 H560"/><path class="sig" d="M340 550 H560"/><path class="sig" d="M340 600 H560"/>
+  <text x="56" y="520" class="note">LED 긴 다리(+)가 저항 쪽</text>
+  <!-- GND left -->
+  <rect class="pwr" x="40" y="700" width="300" height="40" rx="10"/>
+  <text x="56" y="726" class="t">GND 레일 (센서·LED·버튼·LCD 공통)</text>
+  <path class="gnd" d="M340 720 H560"/>
+
+  <!-- motor -->
+  <rect class="drv" x="1000" y="150" width="360" height="190" rx="12"/>
+  <text x="1016" y="178" class="h">진동 모터 구동 (DVM1030, 3V)</text>
+  <text x="1016" y="204" class="t">GPIO27 → 1kΩ → 2N2222A 베이스</text>
+  <text x="1016" y="226" class="t">2N2222A 에미터 → GND, 컬렉터 → 모터(−)</text>
+  <text x="1016" y="248" class="t">모터(+) → 3V3 (5V 연결 금지)</text>
+  <text x="1016" y="270" class="t">1N4007: 모터 양단, 줄무늬(캐소드)를 +쪽</text>
+  <text x="1016" y="292" class="t">2N2222A 핀: TO-92 평평한 면 보고 E·B·C</text>
+  <text x="1016" y="314" class="note">(제조사마다 다름. 데이터시트로 확인)</text>
+  <path class="sig" d="M840 220 H1000"/>
+  <path class="p3" d="M840 300 H1000"/>
+
+  <!-- servo -->
+  <rect class="drv" x="1000" y="360" width="360" height="110" rx="12"/>
+  <text x="1016" y="388" class="h">SG90 서보 (도어락)</text>
+  <text x="1016" y="412" class="t">신호(주황) ← GPIO13, 전원(빨강) ← 5V, GND(갈색)</text>
+  <text x="1016" y="434" class="t">서보 5V와 GND 사이 1000µF (긴 다리 +)</text>
+  <text x="1016" y="456" class="note">기동 전류 때문에 충전기는 2A급 사용</text>
+  <path class="sig" d="M840 400 H1000"/>
+
+  <!-- speaker -->
+  <rect class="drv" x="1000" y="490" width="360" height="150" rx="12"/>
+  <text x="1016" y="518" class="h">PAM8403 앰프 + 스피커</text>
+  <text x="1016" y="542" class="t">GPIO25 → L입력 (R은 비움)</text>
+  <text x="1016" y="564" class="t">앰프 VCC ← 5V, GND ← GND</text>
+  <text x="1016" y="586" class="t">앰프 L출력(+/−) → 스피커 3W 8Ω</text>
+  <text x="1016" y="608" class="note">잡음이 크면 입력에 10µF 직렬, 소리는 코드에서 작게</text>
+  <path class="sig" d="M840 500 H1000"/>
+
+  <!-- 5V -->
+  <path class="p5" d="M840 600 H920 V445 H1000"/>
+  <path class="p5" d="M920 530 H1000"/>
+  <circle class="dot" cx="920" cy="530" r="5"/>
+  <text x="850" y="590" class="note">5V 분배: 서보, 앰프, LCD</text>
+
+  <!-- GND right -->
+  <rect class="pwr" x="1000" y="700" width="360" height="40" rx="10"/>
+  <text x="1016" y="726" class="t">GND 레일 (트랜지스터·서보·앰프·콘덴서 공통)</text>
+  <path class="gnd" d="M840 720 H1000"/>
+
+  <text x="40" y="810" class="note">LCD VCC도 VIN(5V) 레일에서 받음. GPIO12·0·2·15는 부팅 핀이라 사용하지 않음. 현황판 보드는 별도(ILI9341 SPI)로 이 도면에 포함되지 않음.</text>
+  <text x="40" y="832" class="note">2호기는 같은 도면, 서버에서 washerId만 다르게 설정.</text>
+</svg>

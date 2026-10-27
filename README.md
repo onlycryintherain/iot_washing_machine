@@ -18,6 +18,52 @@ ESP32 (추후 연결) ──┘
 
 Simulator 및 향후 ESP32는 같은 washer service/state machine 경로를 이용합니다. Device API는 `POST /api/device/washers/:washerId/event`이며 `Authorization: Bearer <DEVICE_API_SECRET>`을 요구합니다.
 
+## Hardware plan (스마트 세탁실)
+
+아직 구현 전인 계획입니다. 세탁기 노드는 기존 Device API를 그대로 쓰고, 서버에 새로 필요한 것은 현황판용 읽기 API 하나입니다.
+
+| 장치 | 수량 | 구성 | 역할 |
+|---|---|---|---|
+| 세탁기 노드 | 2 | ESP32, MPU6050(진동), I2C LCD 16x2, 상태 LED 3색, 수거 확인 버튼, 진동 모터(+ 2N2222A, 1N4007) | 진동으로 시작·종료를 판정해 Device API로 전송하고 LCD·LED로 현장에 표시 |
+| 서보 도어락 | 세탁기 노드마다 1 | SG90 서보 + 리드 스위치(문 열림 감지) | 세탁 중 잠금, 완료 시 해제, 문 열림 시 주인에게 알림 |
+| 스피커 | 세탁기 노드마다 1 | PAM8403 앰프(ESP32 DAC GPIO25) + 3W 8Ω 스피커 | 완료 시 멜로디 |
+| 층별 현황판 | 1 | ESP32 + ILI9341 2.8인치 터치 TFT | 서버 상태를 5초마다 받아 표시 |
+| 예비 | 1 | ESP32 | 고장 대비, 펌웨어 개발용 |
+
+진동 모터는 발표용으로 세탁기 진동을 흉내 내는 용도이고, 센서와 같은 판에 고정합니다. 케이스는 3D 프린팅입니다. 1호기와 2호기는 부품과 기능이 완전히 같고 서버의 `washerId`만 다릅니다.
+
+배선도: 전체 [docs/wiring-system.svg](docs/wiring-system.svg), 세탁기 노드 상세 [docs/wiring-washer-node.svg](docs/wiring-washer-node.svg). ESP32는 노드 2대와 현황판 1대가 각각 독립이고, 세탁기는 장난감 없이 3D 프린팅 케이스에 실제 진동 모터를 넣어 시연합니다.
+
+| ESP32 | 연결 |
+|---|---|
+| GPIO21 / GPIO22 | I2C SDA / SCL (MPU6050, LCD1602) |
+| GPIO23 | 리드 스위치 (INPUT_PULLUP, 반대쪽 GND) |
+| GPIO19 | 수거 버튼 (INPUT_PULLUP, 반대쪽 GND) |
+| GPIO16 / 17 / 18 | 빨강 / 노랑 / 초록 LED (각 220Ω) |
+| GPIO27 | 1kΩ → 2N2222A 베이스 (진동 모터, 모터 전원은 3V3) |
+| GPIO13 | SG90 서보 신호 (전원 5V, 1000µF) |
+| GPIO25 | PAM8403 입력 (DAC) |
+| VIN(5V) / 3V3 / GND | 서보·앰프·LCD / MPU6050·모터 / 공통 |
+
+### 현황판 화면
+
+```text
+기본 화면                          세탁기를 누르면
+┌───────────────────────┐          ┌───────────────────────┐
+│       YYYY-MM-DD      │          │  ┌─────────────────┐  │
+│  사용 가능한 세탁기: N대 │          │  │ 세탁기 N         │  │
+│                       │          │  │ 남은 세탁 시간:   │  │
+│   [1]       [2]       │          │  │   N시간 N분      │  │
+│  사용가능    사용중     │          │  │ N시 N분 종료예정  │  │
+└───────────────────────┘          │  │     [닫기]       │  │
+                                   │  └─────────────────┘  │
+                                   └───────────────────────┘
+```
+
+- **상태 표시(제안):** `IDLE`은 사용가능, `RESERVED`·`RUNNING`·`MAYBE_FINISHED`는 사용중, `FINISHED`(수거 대기)는 사용불가로 보여줍니다.
+- **개인정보:** 사용자 이름과 학번은 현황판에 표시하지 않습니다.
+- **읽기 API:** `GET /api/display/washers`를 새로 만들고 장치 키로 보호합니다. 지금 `GET /api/washers`는 응답에 `currentUserId`가 들어 있고 `GET /api/overview`는 사용자 인증이 필요해서 현황판에 쓰지 않습니다. 남은 시간과 종료 예정 시각은 서버가 계산해 내려줍니다.
+
 ## Stack
 
 Next.js App Router, TypeScript, Tailwind CSS, Lucide, PostgreSQL (`pg`), Drizzle ORM, Zod, Web Push (`web-push`), Service Worker.

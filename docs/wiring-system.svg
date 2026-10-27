@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900" role="img" aria-labelledby="title desc">
+  <title id="title">스마트 세탁실 전체 회로도</title>
+  <desc id="desc">ESP32 세 대(세탁기 노드 2대, 현황판 1대)가 각각 독립적으로 Wi-Fi로 서버에 연결된다. 세탁기 노드는 센서·LCD·LED·모터·서보·스피커를 가지고, 현황판은 ILI9341 터치 TFT를 SPI로 연결한다.</desc>
+  <defs>
+    <style>
+      text{font-family:'Malgun Gothic','Segoe UI',sans-serif;fill:#17251f}
+      .title{font-size:30px;font-weight:750}.sub{font-size:16px;fill:#53655a}
+      .esp{fill:#eaf5eb;stroke:#3c7959;stroke-width:3}
+      .part{fill:#fff;stroke:#b5c8b9;stroke-width:2.5}
+      .srv{fill:#e9f0fa;stroke:#3e649c;stroke-width:3}
+      .h{font-size:19px;font-weight:700}.t{font-size:14.5px}.pin{font-size:14.5px;font-weight:650}.note{font-size:13.5px;fill:#526258}
+      .sig{fill:none;stroke:#3e649c;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+      .wifi{fill:none;stroke:#7a4fb5;stroke-width:3;stroke-dasharray:9 7;stroke-linecap:round}
+      .p3{fill:none;stroke:#c0392b;stroke-width:3;stroke-linecap:round}
+      .gnd{fill:none;stroke:#4b5761;stroke-width:3;stroke-linecap:round}
+    </style>
+  </defs>
+  <rect width="1400" height="900" fill="#fbfdfb"/>
+  <text x="40" y="46" class="title">스마트 세탁실 전체 회로도</text>
+  <text x="40" y="72" class="sub">ESP32 3대가 각각 독립 동작  ·  파랑=신호 빨강=3.3V 회색=GND 보라 점선=Wi-Fi  ·  케이스는 모두 3D 프린팅</text>
+
+  <!-- server -->
+  <rect class="srv" x="470" y="100" width="460" height="86" rx="14"/>
+  <text x="700" y="136" class="h" text-anchor="middle">Next.js 서버 + PostgreSQL</text>
+  <text x="700" y="160" class="t" text-anchor="middle">POST /api/device/washers/:id/event · GET /api/display/washers</text>
+  <path class="wifi" d="M260 330 V240 H560 V186"/>
+  <path class="wifi" d="M700 330 V186"/>
+  <path class="wifi" d="M1140 330 V240 H840 V186"/>
+  <text x="270" y="232" class="note">Wi-Fi (이벤트 전송)</text>
+  <text x="1010" y="232" class="note">Wi-Fi (상태 조회, 5초마다)</text>
+
+  <!-- node 1 -->
+  <rect class="esp" x="130" y="330" width="260" height="70" rx="12"/>
+  <text x="260" y="362" class="h" text-anchor="middle">ESP32 #1 (1호기)</text>
+  <text x="260" y="385" class="note" text-anchor="middle">USB 5V 2A 전원</text>
+  <!-- node 2 -->
+  <rect class="esp" x="570" y="330" width="260" height="70" rx="12"/>
+  <text x="700" y="362" class="h" text-anchor="middle">ESP32 #2 (2호기)</text>
+  <text x="700" y="385" class="note" text-anchor="middle">USB 5V 2A 전원, 1호기와 동일</text>
+
+  <!-- node peripherals (1) -->
+  <path class="sig" d="M260 400 V430"/>
+  <rect class="part" x="40" y="430" width="440" height="330" rx="12"/>
+  <text x="56" y="458" class="h">세탁기 노드 부품 (각 노드마다 1세트)</text>
+  <text x="56" y="486" class="t">GPIO21/22 → MPU6050 (3V3) + LCD1602 (5V) · I2C</text>
+  <text x="56" y="510" class="t">GPIO23 → 리드 스위치 (문 열림, 반대쪽 GND)</text>
+  <text x="56" y="534" class="t">GPIO19 → 수거 버튼 (반대쪽 GND)</text>
+  <text x="56" y="558" class="t">GPIO16/17/18 → 220Ω → 빨강/노랑/초록 LED → GND</text>
+  <text x="56" y="582" class="t">GPIO27 → 1kΩ → 2N2222A → 진동 모터 (3V3) + 1N4007</text>
+  <text x="56" y="606" class="t">GPIO13 → SG90 서보 (5V, 1000µF) = 도어락</text>
+  <text x="56" y="630" class="t">GPIO25(DAC) → PAM8403 (5V) → 스피커 3W 8Ω</text>
+  <text x="56" y="664" class="note">상세 핀·부품 배선: docs/wiring-washer-node.svg</text>
+  <text x="56" y="688" class="note">진동 모터와 MPU6050은 3D 케이스 안 같은 판에 고정</text>
+  <text x="56" y="712" class="note">세탁기 상태는 실제 모터 진동으로 판정 (시뮬레이터 불필요)</text>
+  <text x="56" y="736" class="note">서보 도어락은 세탁 중 잠금, 소유자 인증 후 일시정지에서 해제</text>
+
+  <!-- node 2 mirror -->
+  <path class="sig" d="M700 400 V430"/>
+  <rect class="part" x="480" y="430" width="440" height="110" rx="12"/>
+  <text x="496" y="458" class="h">2호기 부품: 왼쪽과 완전히 동일</text>
+  <text x="496" y="484" class="t">핀 배정도 같고, 서버에서 washerId만 다르게 설정</text>
+  <text x="496" y="508" class="t">별도 ESP32, 별도 전원, 별도 3D 케이스</text>
+
+  <!-- board -->
+  <rect class="esp" x="1010" y="330" width="260" height="70" rx="12"/>
+  <text x="1140" y="362" class="h" text-anchor="middle">ESP32 #3 (층별 현황판)</text>
+  <text x="1140" y="385" class="note" text-anchor="middle">USB 5V 전원</text>
+  <path class="sig" d="M1140 400 V430"/>
+  <rect class="part" x="940" y="430" width="420" height="440" rx="12"/>
+  <text x="956" y="458" class="h">ILI9341 2.8" 터치 TFT (SPI, 3.3V)</text>
+  <text x="956" y="486" class="t">VCC → 3V3 · GND → GND · LED(백라이트) → 3V3</text>
+  <text x="956" y="510" class="t">CS → GPIO5 · RESET → GPIO4 · DC → GPIO16</text>
+  <text x="956" y="534" class="t">SDI(MOSI) → GPIO23 · SCK → GPIO18</text>
+  <text x="956" y="558" class="t">SDO(MISO) → GPIO19</text>
+  <text x="956" y="590" class="h">터치 (같은 보드의 T_ 핀)</text>
+  <text x="956" y="616" class="t">T_CLK → 18 · T_DIN → 23 · T_DO → 19 (SPI 공유)</text>
+  <text x="956" y="640" class="t">T_CS → GPIO21</text>
+  <text x="956" y="664" class="t">T_IRQ → GPIO22 (선택, 터치 감지 인터럽트)</text>
+  <text x="956" y="700" class="note">LCD·터치가 SPI 핀을 공유하고 CS로 구분</text>
+  <text x="956" y="724" class="note">터치 방식(저항막 XPT2046 계열 예상)은 상품 페이지에 없음</text>
+  <text x="956" y="748" class="note">받은 뒤 라이브러리(TFT_eSPI)로 확인, 필요하면 보정</text>
+  <text x="956" y="784" class="t">화면: 날짜, 사용 가능 N대, 세탁기 아이콘</text>
+  <text x="956" y="808" class="t">세탁기를 누르면 남은 시간·종료 예정 시각 팝업</text>
+  <text x="956" y="832" class="note">사용자 이름·학번은 표시하지 않음</text>
+
+  <!-- power note -->
+  <rect class="part" x="40" y="780" width="880" height="90" rx="12"/>
+  <text x="56" y="808" class="h">전원</text>
+  <text x="56" y="832" class="t">ESP32 3대 모두 각자의 micro-USB 5V 충전기 (노드는 2A급, 서보·모터·스피커 순간 전류 때문)</text>
+  <text x="56" y="856" class="note">모든 센서·모터 GND는 해당 ESP32 GND와 공통, 노드끼리 전선 연결 없음 (통신은 전부 Wi-Fi)</text>
+</svg>
