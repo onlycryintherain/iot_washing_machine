@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { ScanLine, WashingMachine } from 'lucide-react';
 import { EventTimeline } from '@/components/event-timeline';
+import { FeedbackCard } from '@/components/feedback-card';
 import { useWasherOverview } from '@/components/use-washer-overview';
 import { WasherStatus } from '@/components/washer-status';
 import { WasherTiming } from '@/components/washer-timing';
@@ -45,6 +46,7 @@ export default function MyWashPage() {
 
   if (!myWasher) return <>
     {topline}
+    <FeedbackCard />
     {error && <p className="notice" role="status">{error}</p>}
     <section className="empty-state">
       <span className="empty-icon" aria-hidden="true"><WashingMachine size={34} strokeWidth={1.6} /></span>
@@ -60,6 +62,7 @@ export default function MyWashPage() {
   const finished = myWasher.state === 'FINISHED' || myWasher.state === 'WAITING_FOR_PICKUP';
   return <>
     {topline}
+    <FeedbackCard />
     <section className={`my-card ${status.tone}`} aria-label="내 세탁 현황">
       <span className="my-card-top"><span className="my-card-label">{myWasher.location}</span><WasherStatus state={myWasher.state} /></span>
       <strong className="my-card-name">{myWasher.name}</strong>

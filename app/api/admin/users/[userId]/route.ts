@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { eq, inArray } from 'drizzle-orm';
 import { z } from 'zod';
 import { getDb } from '@/lib/db';
-import { reminderLog, sessions, subscriptions, users, washers } from '@/lib/db/schema';
+import { reminderLog, sessions, subscriptions, users, washers, washFeedback } from '@/lib/db/schema';
 import { equivalentUserIds } from '@/lib/auth/identity';
 import { errorCode } from '@/lib/errors';
 import { apiError, requireAdmin, unauthorized } from '@/lib/http';
@@ -41,6 +41,7 @@ export async function DELETE(request: Request, context: { params: Promise<{ user
     if (assigned) return NextResponse.json({ error: '현재 세탁기에 연결된 사용자입니다. 수거 완료 또는 초기화 후 삭제해주세요.' }, { status: 409 });
 
     const deleted = await db.transaction(async (tx) => {
+      await tx.delete(washFeedback).where(inArray(washFeedback.userId, ids));
       await tx.delete(reminderLog).where(inArray(reminderLog.sessionId, tx.select({ id: sessions.id }).from(sessions).where(inArray(sessions.userId, ids))));
       await tx.delete(sessions).where(inArray(sessions.userId, ids));
       await tx.delete(subscriptions).where(inArray(subscriptions.userId, ids));

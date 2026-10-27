@@ -1,6 +1,7 @@
 // Optional: fills the database with synthetic usage history so the charts look alive in a showcase.
 //   node scripts/seed-demo.mjs          add roughly 80 demo sessions spread over the last 30 days (including today)
 //   node scripts/seed-demo.mjs --clean  remove everything this script created
+// Each demo wash also gets a satisfaction answer (last 14 days only).
 // Demo rows belong to a user whose nickname starts with "[데모]"; real data is never touched.
 //
 // The history follows the dorm's rules so it reads as realistic: nobody can enter in the morning,
@@ -35,6 +36,13 @@ function pickMinute(windows) {
   return between(from, to - 1);
 }
 
+// The last washer plays the one with a clogged filter: lint on clothes shows up in many answers, so the admin screen has something to flag.
+function fakeFeedback(worn) {
+  if (worn && Math.random() < 0.45) return { rating: between(1, 3), issues: Math.random() < 0.7 ? ['RESIDUE'] : ['RESIDUE', 'DAMP'] };
+  if (Math.random() < 0.1) return { rating: between(2, 3), issues: [['ODOR', 'STAIN', 'NOISE'][between(0, 2)]] };
+  return { rating: between(4, 5), issues: [] };
+}
+
 function planDay(weekday, washerIds) {
   const windows = weekday === 3 ? WINDOWS.wednesday : WINDOWS.other;
   const [min, max] = PER_DAY[weekday];
@@ -60,6 +68,7 @@ async function main() {
     const existing = await client.query('SELECT id FROM users WHERE nickname = $1', [NICKNAME]);
     if (existing.rowCount) {
       const ids = existing.rows.map((row) => row.id);
+      await client.query('DELETE FROM wash_feedback WHERE user_id = ANY($1)', [ids]);
       await client.query('DELETE FROM reminder_log WHERE session_id IN (SELECT id FROM laundry_sessions WHERE user_id = ANY($1))', [ids]);
       await client.query('DELETE FROM laundry_sessions WHERE user_id = ANY($1)', [ids]);
       await client.query('DELETE FROM users WHERE id = ANY($1)', [ids]);
@@ -85,12 +94,20 @@ async function main() {
         const finish = start + between(11_500, 13_000); // the app scales ~12 s to a ~48 minute cycle
         const reserved = start - between(60, 240) * 1000;
         const pickedUp = finish + between(2, 25) * 60_000;
+        const sessionId = randomUUID();
         await client.query(
           `INSERT INTO laundry_sessions (id, washer_id, user_id, status, reserved_at, started_at, finished_at, picked_up_at, finished_notification_sent_at, created_at, updated_at)
            VALUES ($1, $2, $3, 'PICKED_UP', $4, $5, $6, $7, $6, $4, $7)`,
-          [randomUUID(), washerId, userId, new Date(reserved), new Date(start), new Date(finish), new Date(pickedUp)],
+          [sessionId, washerId, userId, new Date(reserved), new Date(start), new Date(finish), new Date(pickedUp)],
         );
         inserted++;
+        if (day <= 13 && Math.random() < 0.7) {
+          const { rating, issues } = fakeFeedback(washerId === washerIds[washerIds.length - 1]);
+          await client.query(
+            'INSERT INTO wash_feedback (id, session_id, washer_id, user_id, rating, issues, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+            [randomUUID(), sessionId, washerId, userId, rating, JSON.stringify(issues), new Date(pickedUp + between(1, 20) * 60_000)],
+          );
+        }
       }
     }
     console.log(`Added ${inserted} demo sessions. Remove them with: node scripts/seed-demo.mjs --clean`);

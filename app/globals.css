@@ -523,3 +523,32 @@ body:has(.action-stack) .chat-fab { bottom: calc(112px + env(safe-area-inset-bot
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
 }
+
+/* ---------- Wash feedback ---------- */
+.feedback-card { margin: 16px 0 20px; padding: 20px; border-radius: var(--radius-2xl); background: var(--blue-50); }
+.feedback-card h2 { margin: 0 0 12px; font-size: 18px; letter-spacing: -0.02em; }
+.feedback-stars { display: flex; gap: 6px; margin-bottom: 14px; }
+.feedback-stars button { padding: 4px; border: 0; background: none; color: var(--grey-400); cursor: pointer; }
+.feedback-stars button.on { color: var(--orange-500); }
+.feedback-sub { margin: 0 0 8px; font-size: 14px; color: var(--grey-700); }
+.feedback-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.feedback-chips button, .feedback-chips span { padding: 8px 12px; border: 1px solid var(--grey-200); border-radius: 999px; background: #fff; color: var(--grey-800); font-size: 14px; }
+.feedback-chips button { cursor: pointer; }
+.feedback-chips button.on { border-color: var(--blue-500); background: var(--blue-500); color: #fff; }
+.feedback-chips.static { margin: 8px 0 0; }
+.feedback-comment { display: block; width: 100%; margin: 0 0 12px; padding: 12px 14px; border: 1px solid var(--grey-200); border-radius: var(--radius-m); background: #fff; font: inherit; font-size: 15px; resize: vertical; }
+.feedback-actions { display: grid; gap: 8px; }
+.feedback-privacy { margin: 10px 0 0; font-size: 12px; color: var(--grey-600); }
+.feedback-thanks { margin: 16px 0; }
+
+.admin-feedback-alerts { display: grid; gap: 10px; margin-bottom: 14px; }
+.admin-feedback-alerts article { padding: 14px 16px; border-radius: var(--radius-xl); background: var(--orange-50); color: var(--orange-700); }
+.admin-feedback-alerts article.urgent { background: var(--red-50); color: var(--red-500); }
+.admin-feedback-alerts ul { margin: 6px 0 0; padding-left: 18px; font-size: 14px; line-height: 1.5; }
+.admin-feedback-score { margin: 4px 0 0; color: var(--grey-600); }
+.admin-feedback-score strong { font-size: 26px; color: var(--grey-900); }
+.admin-feedback-sub { margin: 20px 0 8px; font-size: 16px; }
+.admin-feedback-comments { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.admin-feedback-comments li { padding: 12px 14px; border-radius: var(--radius-m); background: #fff; }
+.admin-feedback-comments li span { font-size: 12px; color: var(--grey-600); }
+.admin-feedback-comments li p { margin: 4px 0 0; font-size: 14px; line-height: 1.5; }

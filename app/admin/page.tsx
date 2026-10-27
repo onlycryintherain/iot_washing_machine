@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { WasherQrCards } from '@/components/washer-qr-cards';
 import { BrandLogo } from '@/components/brand-logo';
+import { AdminFeedback } from '@/components/admin-feedback';
 
 type Item = {
   id: string;
@@ -197,6 +198,7 @@ export default function Admin() {
           <Link className="button admin-washer-open" href={`/admin/simulator?washer=${encodeURIComponent(washer.id)}`}>{washer.state === 'IDLE' ? '테스트 시작하기' : '상태 보기 · 처리하기'}</Link>
         </article>;
       })}</div>
+      <AdminFeedback password={password} />
       <section className="section admin-users-section" aria-labelledby="admin-users-title">
         <div className="admin-users-heading"><div><h2 id="admin-users-title">사용자 관리</h2><p className="lead">이름·학번을 검색하고 등록 정보를 수정하거나 삭제하세요.</p></div><span className="admin-count">{visiblePeople.length}명 표시</span></div>
         <div className="admin-user-toolbar">

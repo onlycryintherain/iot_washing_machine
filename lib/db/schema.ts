@@ -17,3 +17,6 @@ export const events = pgTable('washer_events', {
   id: text('id').primaryKey(), washerId: text('washer_id').notNull().references(()=>washers.id), type: text('type').notNull(), vibration: integer('vibration'), current: real('current'), doorOpen: boolean('door_open'), metadata: jsonb('metadata'), createdAt: timestamp('created_at',{withTimezone:true}).defaultNow().notNull()
 });
 export const reminderLog = pgTable('reminder_log', { id:text('id').primaryKey(), sessionId:text('session_id').notNull().references(()=>sessions.id), reminderMinutes:integer('reminder_minutes').notNull(), sentAt:timestamp('sent_at',{withTimezone:true}).defaultNow().notNull() }, t=>[uniqueIndex('reminder_session_minute_idx').on(t.sessionId,t.reminderMinutes)]);
+export const washFeedback = pgTable('wash_feedback', {
+  id: text('id').primaryKey(), sessionId: text('session_id').notNull().unique().references(()=>sessions.id), washerId: text('washer_id').notNull().references(()=>washers.id), userId: text('user_id').notNull().references(()=>users.id), rating: integer('rating').notNull(), issues: jsonb('issues').$type<string[]>().default([]).notNull(), comment: text('comment'), createdAt: timestamp('created_at',{withTimezone:true}).defaultNow().notNull()
+});
