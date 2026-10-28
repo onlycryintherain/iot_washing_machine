@@ -1,38 +1,33 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="780" viewBox="0 0 1400 780" role="img" aria-labelledby="title desc">
-  <title id="title">스마트 세탁실 전체 회로도</title>
-  <desc id="desc">모형 세탁기 노드가 ESP32 DevKitC와 ESP32-CAM을 가지고, Wi-Fi로 서버에 연결된다. 현황판은 별도 하드웨어 없이 앱 화면으로 제공한다.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="760" viewBox="0 0 1400 760" role="img" aria-labelledby="t d">
+  <title id="t">전체 구성도</title>
+  <desc id="d">세탁기 위에 올리는 제품(ESP32 DevKitC와 ESP32-CAM)이 Wi-Fi로 서버에 연결된다. 교실 시연에서는 세탁기 대신 시연 받침(ESP32, 진동 모터, TM1637 표시창)을 쓰며 받침은 서버와 통신하지 않는다.</desc>
   <defs><style>
     text{font-family:'Malgun Gothic','Segoe UI',sans-serif;fill:#17251f}
-    .title{font-size:30px;font-weight:750}.sub{font-size:16px;fill:#53655a}
-    .esp{fill:#eaf5eb;stroke:#3c7959;stroke-width:3}.part{fill:#fff;stroke:#b5c8b9;stroke-width:2.5}.srv{fill:#e9f0fa;stroke:#3e649c;stroke-width:3}
-    .h{font-size:19px;font-weight:700}.t{font-size:14.5px}.note{font-size:13.5px;fill:#526258}
-    .wifi{fill:none;stroke:#7a4fb5;stroke-width:3;stroke-dasharray:9 7;stroke-linecap:round;stroke-linejoin:round}
+    .title{font-size:30px;font-weight:750}.sub{font-size:16px;fill:#53655a}.h{font-size:19px;font-weight:700}.t{font-size:14.5px}.note{font-size:13.5px;fill:#526258}
+    .esp{fill:#eaf5eb;stroke:#3c7959;stroke-width:3}.part{fill:#fff;stroke:#b5c8b9;stroke-width:2.5}.srv{fill:#e9f0fa;stroke:#3e649c;stroke-width:3}.rig{fill:#fff5e7;stroke:#c48427;stroke-width:3}
+    .wifi{fill:none;stroke:#7a4fb5;stroke-width:3;stroke-dasharray:9 7;stroke-linecap:round;stroke-linejoin:round}.phys{fill:none;stroke:#e5484d;stroke-width:3;stroke-dasharray:3 6;stroke-linecap:round}
   </style></defs>
-  <rect width="1400" height="780" fill="#fbfdfb"/>
-  <text x="40" y="46" class="title">스마트 세탁실 전체 회로도</text>
-  <text x="40" y="72" class="sub">모형 세탁기 노드 1대, ESP32 보드 2개가 각각 독립 동작  ·  보라 점선=Wi-Fi  ·  케이스는 모두 3D 프린팅</text>
+  <rect width="1400" height="760" fill="#fbfdfb"/>
+  <text x="40" y="46" class="title">전체 구성도</text>
+  <text x="40" y="72" class="sub">제품 = 세탁기 위에 올리는 센서 허브  ·  시연 받침 = 교실에서 세탁기 대신 쓰는 소품  ·  보라 점선 = Wi-Fi, 빨강 점선 = 물리적 전달(진동, 카메라)</text>
   <rect class="srv" x="470" y="100" width="460" height="86" rx="14"/>
   <text x="700" y="136" class="h" text-anchor="middle">Next.js 서버 + PostgreSQL</text>
-  <text x="700" y="160" class="t" text-anchor="middle">이벤트 API · 표시창 사진 API · GET /api/display/washers</text>
-  <text x="600" y="290" class="note">앱의 현황판 화면이 /api/display/washers 를 읽어 보여줌 (별도 현황판 하드웨어 없음)</text>
-  <rect class="esp" x="40" y="330" width="250" height="60" rx="12"/>
-  <text x="165" y="358" class="h" text-anchor="middle">ESP32 DevKitC #1</text>
-  <text x="165" y="378" class="note" text-anchor="middle">진동·표시·알림 (USB 5V 2A)</text>
-  <rect class="esp" x="310" y="330" width="250" height="60" rx="12"/>
-  <text x="435" y="358" class="h" text-anchor="middle">ESP32-CAM #1</text>
-  <text x="435" y="378" class="note" text-anchor="middle">표시창 촬영 (USB 5V)</text>
-  <rect class="part" x="40" y="410" width="520" height="300" rx="12"/>
-  <text x="56" y="438" class="h">모형 세탁기</text>
-  <text x="56" y="466" class="t">DevKitC: I2C(21/22) → MPU6050 + LCD1602</text>
-  <text x="56" y="490" class="t">GPIO19 수거 버튼, GPIO16/17/18 → LED 3색</text>
-  <text x="56" y="514" class="t">GPIO27 → 2N2222A → 진동 모터 (3V3)</text>
-  <text x="56" y="538" class="t">GPIO25(DAC) → PAM8403 → 스피커</text>
-  <text x="56" y="562" class="t">GPIO32/33 → TM1637 표시창 (남은 시간)</text>
-  <text x="56" y="598" class="t">ESP32-CAM: 표시창을 10~15cm에서 촬영 후</text>
-  <text x="56" y="620" class="t">서버로 JPEG 업로드 → AI가 남은 시간 판독</text>
-  <text x="56" y="656" class="note">상세 배선: docs/wiring-washer-node.svg</text>
-  <text x="56" y="680" class="note">모든 GND는 각 보드 GND와 공통, 보드끼리 전선 연결 없음</text>
-  <path class="wifi" d="M165 330 V240 H560 V186"/>
-  <path class="wifi" d="M435 330 V250 H165"/>
-  <text x="40" y="750" class="note">전원: 보드마다 각자의 micro-USB 5V 충전기 (지마켓 5V 2A x 2)</text>
+  <text x="700" y="160" class="t" text-anchor="middle">이벤트 API · 표시창 사진 API · 현황판 API · 앱</text>
+  <rect class="esp" x="60" y="300" width="260" height="60" rx="12"/><text x="190" y="328" class="h" text-anchor="middle">DevKitC (제품)</text><text x="190" y="348" class="note" text-anchor="middle">진동 판정·표시·알림</text>
+  <rect class="esp" x="360" y="300" width="260" height="60" rx="12"/><text x="490" y="328" class="h" text-anchor="middle">ESP32-CAM (제품)</text><text x="490" y="348" class="note" text-anchor="middle">표시창 촬영 후 서버로 전송</text>
+  <path class="wifi" d="M190 300 V240 H560 V186"/><path class="wifi" d="M490 300 V260 H640 V186"/>
+  <rect class="part" x="60" y="390" width="560" height="190" rx="12"/>
+  <text x="76" y="418" class="h">제품 (센서 허브 상자 + 카메라 기둥)</text>
+  <text x="76" y="446" class="t">DevKitC: MPU6050(진동), LCD1602, LED 3색, 수거 버튼, 부저(또는 스피커)</text>
+  <text x="76" y="470" class="t">ESP32-CAM: 20~30cm 위에서 표시창을 40~60cm 거리로 내려다봄</text>
+  <text x="76" y="506" class="note">자석이나 양면테이프로 세탁기 윗면에 고정, 각 보드는 자기 5V 충전기로 전원</text>
+  <text x="76" y="528" class="note">상세 배선: docs/wiring-washer-node.svg · 외관: docs/product-exterior.svg</text>
+  <rect class="rig" x="760" y="300" width="580" height="280" rx="14"/>
+  <text x="780" y="332" class="h">시연 받침 (교실용, 서버와 통신하지 않음)</text>
+  <rect class="esp" x="780" y="350" width="260" height="60" rx="12"/><text x="910" y="378" class="h" text-anchor="middle">DevKitC (받침)</text><text x="910" y="398" class="note" text-anchor="middle">예비 보드, 시작 버튼으로 프로그램 실행</text>
+  <text x="780" y="446" class="t">진동 모터 (2N2222A로 구동) → 받침 판을 흔듦</text>
+  <text x="780" y="470" class="t">TM1637 표시창 → 남은 시간이 줄어듦</text>
+  <text x="780" y="506" class="note">상세 배선: docs/wiring-demo-rig.svg</text>
+  <path class="phys" d="M760 440 C700 440 660 420 620 420"/><text x="640" y="610" class="note">받침의 진동이 제품의 MPU6050으로 전달되고, 표시창은 제품의 카메라가 읽음</text>
+  <path class="phys" d="M780 480 C720 500 600 400 540 360"/>
 </svg>

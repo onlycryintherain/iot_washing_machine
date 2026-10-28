@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640" role="img" aria-labelledby="t d">
+  <title id="t">시연 받침 배선도</title>
+  <desc id="d">시연 받침의 ESP32 한 대가 시작 버튼, 진동 모터(트랜지스터 구동), TM1637 표시창을 제어한다. 서버와 통신하지 않는다.</desc>
+  <defs><style>
+    text{font-family:'Malgun Gothic','Segoe UI',sans-serif;fill:#17251f}
+    .title{font-size:28px;font-weight:750}.sub{font-size:15px;fill:#53655a}.h{font-size:19px;font-weight:700}
+    .pin{font-size:15px;font-weight:650}.t{font-size:14.5px}.note{font-size:14px;fill:#526258}
+    .esp{fill:#eaf5eb;stroke:#3c7959;stroke-width:3}.part{fill:#fff;stroke:#b5c8b9;stroke-width:2.5}.drv{fill:#e9f0fa;stroke:#3e649c;stroke-width:2.5}.pwr{fill:#fff5e7;stroke:#c48427;stroke-width:2.5}
+    .sig{fill:none;stroke:#3e649c;stroke-width:3.5;stroke-linecap:round}.p3{fill:none;stroke:#c0392b;stroke-width:3.5;stroke-linecap:round}.gnd{fill:none;stroke:#4b5761;stroke-width:3.5;stroke-linecap:round}.p5{fill:none;stroke:#c48427;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
+  </style></defs>
+  <rect width="1200" height="640" fill="#fbfdfb"/>
+  <text x="40" y="44" class="title">시연 받침 배선도</text>
+  <text x="40" y="68" class="sub">교실에서 세탁기 대신 쓰는 받침. 서버와 통신하지 않고, 시작 버튼을 누르면 모터가 돌고 표시창 숫자가 줄어듭니다.</text>
+  <rect class="esp" x="420" y="100" width="260" height="480" rx="16"/>
+  <text x="550" y="132" class="h" text-anchor="middle">ESP32 DevKitC (예비 보드)</text>
+  <text x="550" y="152" class="note" text-anchor="middle">USB 5V 전원</text>
+  <g class="pin"><text x="434" y="224">GPIO19</text><text x="434" y="544">GND</text></g>
+  <g class="pin" text-anchor="end"><text x="666" y="224">GPIO27</text><text x="666" y="304">3V3</text><text x="666" y="404">GPIO32 CLK</text><text x="666" y="454">GPIO33 DIO</text><text x="666" y="504">VIN (5V)</text><text x="666" y="544">GND</text></g>
+  <rect class="part" x="40" y="190" width="300" height="60" rx="12"/>
+  <text x="56" y="216" class="t">시작 버튼: 한쪽 GPIO19, 한쪽 GND</text><text x="56" y="238" class="note">INPUT_PULLUP, 누르면 시연 프로그램 시작</text>
+  <path class="sig" d="M340 220 H420"/>
+  <rect class="part" x="40" y="520" width="300" height="40" rx="10"/><text x="56" y="546" class="t">GND 공통</text><path class="gnd" d="M340 540 H420"/>
+  <rect class="drv" x="760" y="150" width="400" height="190" rx="12"/>
+  <text x="776" y="178" class="h">진동 모터 구동 (DVM1030, 3V)</text>
+  <text x="776" y="204" class="t">GPIO27 → 1kΩ → 2N2222A 베이스</text>
+  <text x="776" y="226" class="t">2N2222A 에미터 → GND, 컬렉터 → 모터(−)</text>
+  <text x="776" y="248" class="t">모터(+) → 3V3 (5V 연결 금지)</text>
+  <text x="776" y="270" class="t">1N4007: 모터 양단, 줄무늬(캐소드)를 +쪽</text>
+  <text x="776" y="296" class="note">2N2222A 핀 순서는 제조사마다 달라 데이터시트로 확인</text>
+  <path class="sig" d="M680 220 H760"/><path class="p3" d="M680 300 H760"/>
+  <rect class="drv" x="760" y="370" width="400" height="110" rx="12"/>
+  <text x="776" y="398" class="h">TM1637 표시창 (남은 시간)</text>
+  <text x="776" y="422" class="t">CLK ← GPIO32, DIO ← GPIO33</text><text x="776" y="444" class="t">VCC ← 5V(VIN), GND ← GND</text>
+  <text x="776" y="466" class="note">제품의 카메라가 이 화면을 읽음</text>
+  <path class="sig" d="M680 400 H760"/><path class="sig" d="M680 450 H760"/><path class="p5" d="M680 500 H720 V470 H760"/>
+  <rect class="pwr" x="760" y="520" width="400" height="40" rx="10"/><text x="776" y="546" class="t">GND 레일 (트랜지스터·표시창 공통)</text><path class="gnd" d="M680 540 H760"/>
+  <text x="40" y="610" class="note">모터는 제품의 MPU6050과 같은 판(받침)에 단단히 고정해 진동이 전달되게 합니다. 시연 프로그램 길이는 정하기 나름(예: 90초에 48분에서 0분으로 압축 표시).</text>
+</svg>

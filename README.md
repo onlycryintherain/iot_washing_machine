@@ -20,29 +20,39 @@ Simulator 및 향후 ESP32는 같은 washer service/state machine 경로를 이�
 
 ## Hardware plan (스마트 세탁실)
 
-아직 구현 전인 계획입니다. 세탁기 노드는 기존 Device API를 그대로 쓰고, 남은 시간은 모형 세탁기의 표시창을 ESP32-CAM이 읽어 서버로 보냅니다. 현황판은 별도 하드웨어 없이 앱 화면으로 대신합니다.
+아직 구현 전인 계획입니다. 기존 세탁기는 그대로 두고, 우리 제품(센서 허브)을 세탁기 윗면에 올려 붙입니다. 제품은 진동으로 세탁 시작·종료를 판정하고, 카메라(ESP32-CAM)가 세탁기 표시창의 남은 시간을 읽어 기존 Device API로 서버에 보냅니다. 현황판은 별도 하드웨어 없이 앱 화면으로 대신합니다.
 
-| 장치 | 수량 | 구성 | 역할 |
+교실에서는 실제 세탁기를 쓸 수 없어서, 세탁기 대신 **시연 받침**(진동 모터와 TM1637 표시창이 달린 판) 위에 제품을 올려 보여줍니다.
+
+| 구분 | 장치 | 구성 | 역할 |
 |---|---|---|---|
-| 세탁기 노드 | 1 | ESP32, MPU6050(진동), I2C LCD 16x2, 상태 LED 3색, 수거 확인 버튼, 진동 모터(+ 2N2222A, 1N4007) | 진동으로 시작·종료를 판정해 Device API로 전송하고 LCD·LED로 현장에 표시 |
-| 스피커 | 1 | PAM8403 앰프(ESP32 DAC GPIO25) + 3W 8Ω 스피커 | 완료 시 멜로디 |
-| 남은 시간 표시창 | 1 | TM1637 4자리 7세그먼트(GPIO32 CLK, GPIO33 DIO) | 모형 세탁기 앞면에 남은 시간을 표시 |
-| 카메라 | 1 | ESP32-CAM + CH340 업로드 보드(5V 충전기 전원) | 표시창을 10~15cm 거리에서 찍어 서버로 보내 남은 시간을 읽음 |
-| 예비 | 1 | ESP32 | 고장 대비, 펌웨어 개발용 |
+| 제품 | 센서 허브 상자(3D 프린트) | ESP32 DevKitC, MPU6050(진동), I2C LCD 16x2, 상태 LED 3색, 수거 확인 버튼, 소리(부저 또는 스피커) | 진동으로 시작·종료를 판정해 Device API로 전송하고 LCD·LED·소리로 현장에 알림 |
+| 제품 | 카메라 기둥 | ESP32-CAM + CH340 업로드 보드 | 세탁기 윗면 위쪽에서 표시창을 40~60cm 거리로 내려다보고 사진을 서버로 보냄 |
+| 시연 받침 | 판 + 3D 프린트 패널 | 예비 ESP32 DevKitC, 진동 모터(+ 2N2222A, 1N4007), TM1637 4자리 표시창, 시작 버튼 | 시작 버튼을 누르면 모터가 돌고 표시창 숫자가 줄어듦. 서버와 통신하지 않음 |
+| 공통 | 예비 | 핵심 부품 하나씩 | 고장 대비 |
 
-진동 모터는 발표용으로 세탁기 진동을 흉내 내는 용도이고, 센서와 같은 판에 고정합니다. 케이스는 3D 프린팅입니다. 실제 세탁기는 쓸 수 없어서 기존 세탁기에 붙이는 센서 키트를 모형 세탁기 1대로 시연합니다. 핵심 부품은 하나씩 예비로 더 둡니다.
+제품은 자석이나 양면테이프로 세탁기 윗면에 고정하고, 진동 센서가 세탁기에 밀착되게 합니다. 시연 받침의 모터는 제품의 MPU6050과 같은 판에 단단히 고정해 진동이 전달되게 합니다.
 
-외관: [docs/mock-washer-exterior.svg](docs/mock-washer-exterior.svg) (정면도, 측면 단면도, 시연 배치도). 배선도: 전체 [docs/wiring-system.svg](docs/wiring-system.svg), 세탁기 노드 상세 [docs/wiring-washer-node.svg](docs/wiring-washer-node.svg). ESP32 보드는 DevKitC와 ESP32-CAM 2개이고 서로 독립이며, 세탁기는 장난감 없이 3D 프린팅 케이스에 실제 진동 모터를 넣어 시연합니다.
+외관: [docs/product-exterior.svg](docs/product-exterior.svg) (제품 윗면·옆면, 실제 설치, 시연 받침). 배선도: 전체 [docs/wiring-system.svg](docs/wiring-system.svg), 제품 [docs/wiring-washer-node.svg](docs/wiring-washer-node.svg), 시연 받침 [docs/wiring-demo-rig.svg](docs/wiring-demo-rig.svg). 표시창 읽는 방법 후보는 [docs/display-reading-options.md](docs/display-reading-options.md)에 있습니다.
+
+제품 DevKitC 핀:
 
 | ESP32 | 연결 |
 |---|---|
 | GPIO21 / GPIO22 | I2C SDA / SCL (MPU6050, LCD1602) |
 | GPIO19 | 수거 버튼 (INPUT_PULLUP, 반대쪽 GND) |
 | GPIO16 / 17 / 18 | 빨강 / 노랑 / 초록 LED (각 220Ω) |
+| GPIO25 | PAM8403 입력 (DAC, 스피커를 쓰는 경우) |
+| VIN(5V) / 3V3 / GND | 앰프·LCD / MPU6050 / 공통 |
+
+시연 받침 DevKitC 핀:
+
+| ESP32 | 연결 |
+|---|---|
+| GPIO19 | 시작 버튼 (INPUT_PULLUP, 반대쪽 GND) |
 | GPIO27 | 1kΩ → 2N2222A 베이스 (진동 모터, 모터 전원은 3V3) |
-| GPIO25 | PAM8403 입력 (DAC) |
 | GPIO32 / GPIO33 | TM1637 CLK / DIO (전원 5V) |
-| VIN(5V) / 3V3 / GND | 앰프·LCD·TM1637 / MPU6050·모터 / 공통 |
+| VIN(5V) / 3V3 / GND | TM1637 / 모터 / 공통 |
 
 ### 현황판 화면 (앱 화면으로 구현 예정)
 
@@ -59,7 +69,7 @@ Simulator 및 향후 ESP32는 같은 washer service/state machine 경로를 이�
                                    └───────────────────────┘
 ```
 
-- **세탁기 4대:** 1번은 모형 세탁기 노드가 붙는 세탁기이고, 2번은 관리자 시뮬레이터로 구동하며, 3·4번은 현황판 화면 시연용으로 `OUT_OF_ORDER`(사용불가) 상태로 둡니다(마이그레이션 0004).
+- **세탁기 4대:** 1번은 제품이 붙는 세탁기이고, 2번은 관리자 시뮬레이터로 구동하며, 3·4번은 현황판 화면 시연용으로 `OUT_OF_ORDER`(사용불가) 상태로 둡니다(마이그레이션 0004).
 - **상태 표시:** `IDLE`은 `available`(사용가능), `RESERVED`·`RUNNING`·`MAYBE_FINISHED`·`PAUSED`는 `in_use`(사용중), `FINISHED`·`WAITING_FOR_PICKUP`·`OUT_OF_ORDER`는 `unavailable`(사용불가)로 내려줍니다.
 - **개인정보:** 사용자 이름과 학번은 현황판에 표시하지 않습니다.
 - **읽기 API:** `GET /api/display/washers`는 `Authorization: Bearer <DEVICE_API_SECRET>`가 필요하고 `{ now, total, available, washers: [{ id, name, status, state, minutesLeft, endsAt }] }`를 돌려줍니다. 사용자 정보는 들어 있지 않습니다. 종료 예정 시각 `endsAt`은 `지금 + minutesLeft`라서 화면의 남은 시간과 맞습니다.

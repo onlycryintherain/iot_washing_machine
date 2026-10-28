@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1080" viewBox="0 0 1400 1080" role="img" aria-labelledby="t d">
+  <title id="t">제품 외관과 시연 받침</title>
+  <desc id="d">기존 세탁기 윗면에 올려놓는 센서 허브 상자(LCD, LED, 버튼, 소리 구멍)와 카메라 기둥, 그리고 교실 시연용 받침(진동 모터와 TM1637 표시창)을 그린 외관도.</desc>
+  <defs><style>
+    text{font-family:'Malgun Gothic','Segoe UI',sans-serif;fill:#17251f}
+    .title{font-size:30px;font-weight:750}.sub{font-size:16px;fill:#53655a}.h{font-size:19px;font-weight:700}
+    .t{font-size:15px}.n{font-size:13.5px;fill:#526258}.dim{font-size:14px;fill:#7a4fb5;font-weight:650}
+    .box{fill:#f4f7f5;stroke:#6b7c72;stroke-width:3}.dark{fill:#2c3a34;stroke:#1d2924;stroke-width:3}
+    .lcd{fill:#b8d8a8;stroke:#4d6b43;stroke-width:2}.win{fill:#0e1512;stroke:#8fa398;stroke-width:2}
+    .seg{fill:#ff4b3a;font-family:monospace;font-weight:700}
+    .led{stroke:#1d2924;stroke-width:2}.btn{fill:#ffd24a;stroke:#8a6a00;stroke-width:2}.hole{fill:#0e1512}
+    .washer{fill:#e9eef2;stroke:#6b7c72;stroke-width:3}.mast{fill:#cfd8de;stroke:#6b7c72;stroke-width:3}
+    .cam{fill:#e9f0fa;stroke:#3e649c;stroke-width:3}.plank{fill:#e6d3b3;stroke:#8a6f3f;stroke-width:3}
+    .motor{fill:#ffd24a;stroke:#8a6a00;stroke-width:2}.pcb{fill:#cfe8d6;stroke:#3c7959;stroke-width:2}
+    .cone{fill:#7a4fb5;opacity:.12}.line{fill:none;stroke:#7a4fb5;stroke-width:2;stroke-dasharray:7 6}
+    .vib{fill:none;stroke:#e5484d;stroke-width:2.5;stroke-linecap:round}
+  </style></defs>
+  <rect width="1400" height="1080" fill="#fbfdfb"/>
+  <text x="40" y="46" class="title">제품 외관과 시연 받침</text>
+  <text x="40" y="72" class="sub">기존 세탁기는 그대로 두고, 우리 제품(센서 허브)을 윗면에 올려 붙입니다  ·  교실에서는 세탁기 대신 시연 받침 위에 올립니다  ·  3D 프린트(PLA)</text>
+
+  <text x="40" y="114" class="h">A. 제품 윗면 (110 x 75mm)</text>
+  <rect class="box" x="40" y="130" width="330" height="225" rx="12"/>
+  <rect class="win" x="81" y="156" width="248" height="116" rx="5"/><rect class="lcd" x="85" y="160" width="240" height="108" rx="3"/>
+  <text x="95" y="194" style="font-family:monospace;font-size:18px;fill:#2f4a29">1번 세탁기 세탁중</text><text x="95" y="226" style="font-family:monospace;font-size:18px;fill:#2f4a29">남은 시간 12분</text>
+  <circle class="led" cx="106" cy="318" r="9" fill="#e5484d"/>
+  <circle class="led" cx="172" cy="318" r="9" fill="#f5b301"/>
+  <circle class="led" cx="238" cy="318" r="9" fill="#2db36b"/>
+  <circle class="btn" cx="298" cy="318" r="13"/>
+  <circle class="hole" cx="343" cy="310" r="3.5"/><circle class="hole" cx="355" cy="310" r="3.5"/><circle class="hole" cx="343" cy="324" r="3.5"/><circle class="hole" cx="355" cy="324" r="3.5"/>
+  <circle cx="352" cy="160" r="10" fill="none" stroke="#6b7c72" stroke-width="2" stroke-dasharray="4 3"/><text x="327" y="146" class="n" style="font-size:12px">기둥</text>
+  <text x="40" y="379" class="n">LCD 창 80x36mm · LED 지름 5mm 3개 · 버튼 12mm</text>
+  <text x="40" y="399" class="n">오른쪽 점 4개: 소리 구멍(부저/스피커) · 점선 원: 기둥 연결부</text>
+  <text x="40" y="449" class="h">B. 제품 옆면 (높이 50mm)</text>
+  <rect class="box" x="40" y="465" width="225" height="150" rx="10"/>
+  <rect class="pcb" x="50" y="485" width="110" height="60" rx="4"/><text x="56" y="519" class="n">ESP32</text>
+  <rect x="175" y="575" width="60" height="22" rx="3" fill="#2d6cdf"/><text x="175" y="569" class="n">MPU6050</text>
+  <rect x="60" y="615" width="30" height="8" rx="2" fill="#6b7c72"/>
+  <rect x="215" y="615" width="30" height="8" rx="2" fill="#6b7c72"/>
+  <text x="40" y="645" class="n">아래 짙은 부분: 자석(철판 윗면에 붙임). 뒷면에 USB 케이블 구멍</text>
+  <text x="500" y="114" class="h">C. 실제 설치 (옆에서 본 모습, 축척 약 1:1px/mm)</text>
+  <rect class="washer" x="500" y="480" width="620" height="90" rx="6"/>
+  <text x="730" y="532" class="t">기존 세탁기 윗면 (건드리지 않음)</text>
+  <rect class="washer" x="1060" y="480" width="60" height="150"/>
+  <rect class="dark" x="1068" y="492" width="44" height="40" rx="3"/><rect x="1074" y="502" width="32" height="14" fill="#190b0b"/><text x="1078" y="514" class="seg" style="font-size:10px">12</text>
+  <text x="970" y="470" class="t">세탁기 표시창</text>
+  <rect class="box" x="520" y="442" width="110" height="38" rx="6"/><text x="534" y="466" class="n">제품(센서 허브)</text>
+  <rect class="mast" x="612" y="200" width="12" height="242"/>
+  <g transform="rotate(25 618 196)"><rect class="cam" x="598" y="172" width="48" height="28" rx="5"/></g>
+  <text x="650" y="186" class="t">ESP32-CAM (표시창을 내려다봄)</text>
+  <path class="cone" d="M628 194 L1060 462 L1060 520 Z"/>
+  <path class="line" d="M628 194 L1070 498"/>
+  <path class="dim" d="M618 635 H1070" stroke="#7a4fb5" stroke-width="2" fill="none"/><text x="730" y="629" class="dim">40~60cm (표시창까지 거리, 시험 후 확정)</text>
+  <path d="M486 196 V442" stroke="#7a4fb5" stroke-width="2" fill="none"/><text x="488" y="320" class="dim" transform="rotate(-90 488 320)">기둥 20~30cm</text>
+  <text x="520" y="430" class="n">자석/양면테이프로 윗면에 고정</text>
+  <path class="vib" d="M540 576 q8 -6 16 0 t16 0"/>
+  <path class="vib" d="M570 576 q8 -6 16 0 t16 0"/>
+  <path class="vib" d="M600 576 q8 -6 16 0 t16 0"/>
+  <text x="520" y="602" class="n">세탁기 진동 → 제품 바닥의 MPU6050</text>
+  <text x="500" y="660" class="n">사용자는 패널을 가리는 것 없이 그대로 보고, 카메라는 위쪽 멀리서 읽습니다.</text>
+  <text x="700" y="716" class="h">D. 시연 받침 (교실용, 세탁기 대신)</text>
+  <rect class="plank" x="500" y="910" width="620" height="22" rx="3"/>
+  <rect class="box" x="520" y="872" width="110" height="38" rx="6"/><text x="534" y="896" class="n">제품(센서 허브)</text>
+  <rect class="mast" x="612" y="730" width="12" height="142"/>
+  <g transform="rotate(25 618 726)"><rect class="cam" x="598" y="702" width="48" height="28" rx="5"/></g>
+  <path class="cone" d="M628 724 L1060 872 L1060 910 Z"/>
+  <path class="line" d="M628 724 L1070 892"/>
+  <rect class="dark" x="1060" y="850" width="60" height="60" rx="4"/><rect x="1066" y="862" width="48" height="18" fill="#190b0b"/><text x="1070" y="876" class="seg" style="font-size:13px">0:12</text>
+  <text x="976" y="842" class="t">TM1637 표시창</text>
+  <rect class="motor" x="730" y="890" width="46" height="20" rx="4"/><text x="720" y="882" class="t">진동 모터</text>
+  <rect class="pcb" x="830" y="888" width="90" height="22" rx="3"/><text x="830" y="880" class="t">ESP32 (받침 제어)</text>
+  <path class="vib" d="M750 936 q8 -6 16 0 t16 0"/>
+  <text x="500" y="960" class="n">받침 길이 약 50~60cm (나무판이나 두꺼운 종이 + 3D 프린트 패널). 시작 버튼을 누르면 모터가 돌고</text>
+  <text x="500" y="980" class="n">표시창 숫자가 줄어듭니다. 받침의 ESP32는 서버와 통신하지 않고, 제품이 진동과 카메라로 읽어 서버로 보냅니다.</text>
+</svg>
