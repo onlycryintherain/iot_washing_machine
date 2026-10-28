@@ -33,7 +33,7 @@ Simulator 및 향후 ESP32는 같은 washer service/state machine 경로를 이�
 
 제품은 자석이나 양면테이프로 세탁기 윗면에 고정하고, 진동 센서가 세탁기에 밀착되게 합니다. 시연 받침의 모터는 제품의 MPU6050과 같은 판에 단단히 고정해 진동이 전달되게 합니다.
 
-외관: [docs/product-exterior.svg](docs/product-exterior.svg) (제품 윗면·옆면, 실제 설치, 시연 받침). 배선도: 전체 [docs/wiring-system.svg](docs/wiring-system.svg), 제품 [docs/wiring-washer-node.svg](docs/wiring-washer-node.svg), 시연 받침 [docs/wiring-demo-rig.svg](docs/wiring-demo-rig.svg). 표시창 읽는 방법 후보는 [docs/display-reading-options.md](docs/display-reading-options.md)에 있습니다.
+외관: [docs/product-exterior.svg](docs/product-exterior.svg) (제품 윗면·옆면, 실제 설치, 시연 받침). 카메라를 본체에 넣는 로고형 타워 콘셉트는 [docs/product-concept-tower.svg](docs/product-concept-tower.svg)에 있습니다. 배선도: 전체 [docs/wiring-system.svg](docs/wiring-system.svg), 제품 [docs/wiring-washer-node.svg](docs/wiring-washer-node.svg), 시연 받침 [docs/wiring-demo-rig.svg](docs/wiring-demo-rig.svg). 표시창 읽는 방법 후보는 [docs/display-reading-options.md](docs/display-reading-options.md)에 있습니다.
 
 제품 DevKitC 핀:
 

@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1120" viewBox="0 0 1400 1120" role="img" aria-labelledby="t d">
+  <title id="t">제품 외관 콘셉트 비교</title>
+  <desc id="d">카메라 장대가 달린 기존안과, 앱 로고를 그대로 입체로 만든 슬림 타워형 제품안을 비교한 그림. 타워형은 상단 오른쪽 렌즈, 왼쪽 LED 점 3개, 가운데 원형 링 안의 LCD, 아래쪽 버튼과 소리 구멍을 가진다.</desc>
+  <defs><style>
+    text{font-family:'Malgun Gothic','Segoe UI',sans-serif;fill:#17251f}
+    .title{font-size:30px;font-weight:750}.sub{font-size:16px;fill:#53655a}.h{font-size:20px;font-weight:700}
+    .t{font-size:15px}.n{font-size:14px;fill:#526258}.dim{font-size:14px;fill:#7a4fb5;font-weight:650}
+    .body{fill:#0b46c9;stroke:#082f8a;stroke-width:3}.w{fill:#fff}.ring{fill:none;stroke:#fff;stroke-width:12}
+    .lcd{fill:#b8d8a8;stroke:#4d6b43;stroke-width:3}.lens{fill:#0b0f14;stroke:#fff;stroke-width:8}
+    .arc{fill:none;stroke:#0b46c9;stroke-width:8;stroke-linecap:round}
+    .old{fill:#f4f7f5;stroke:#6b7c72;stroke-width:3}.mast{fill:#cfd8de;stroke:#6b7c72;stroke-width:3}.cam{fill:#e9f0fa;stroke:#3e649c;stroke-width:3}
+    .washer{fill:#e9eef2;stroke:#6b7c72;stroke-width:3}.panel{fill:#2c3a34;stroke:#1d2924;stroke-width:3}
+    .cone{fill:#7a4fb5;opacity:.13}.line{fill:none;stroke:#7a4fb5;stroke-width:2;stroke-dasharray:7 6}
+    .pcb{fill:#cfe8d6;stroke:#3c7959;stroke-width:2}.btn{fill:#ffd24a;stroke:#8a6a00;stroke-width:3}
+  </style></defs>
+  <rect width="1400" height="1120" fill="#fbfdfb"/>
+  <text x="40" y="46" class="title">제품 외관 콘셉트 비교</text>
+  <text x="40" y="72" class="sub">앱 로고(파란 둥근 사각형, 점 3개, 큰 원, 와이파이 점)를 그대로 입체로 만든 제품안</text>
+
+  <text x="50" y="130" class="h">① 기존안: 상자 + 장대</text>
+  <rect class="old" x="50" y="530" width="200" height="70" rx="10"/><text x="80" y="572" class="n">제품 상자</text>
+  <rect class="mast" x="220" y="190" width="14" height="342"/>
+  <g transform="rotate(25 227 186)"><rect class="cam" x="198" y="158" width="64" height="38" rx="6"/></g>
+  <text x="50" y="635" class="n">장대 끝에 카메라가 달려 있어</text><text x="50" y="655" class="n">부품을 붙여 놓은 느낌이 나요</text>
+  <text x="420" y="130" class="h">② 추천안: 로고형 타워 (정면)</text>
+  <rect class="body" x="420" y="150" width="330" height="510" rx="36"/>
+  <circle class="w" cx="470" cy="202" r="11"/>
+  <circle class="w" cx="504" cy="202" r="11"/>
+  <circle class="w" cx="538" cy="202" r="11"/>
+  <circle class="w" cx="678" cy="212" r="40"/><circle class="lens" cx="678" cy="212" r="26" style="stroke:#0b46c9;stroke-width:6"/><circle cx="670" cy="204" r="5" fill="#4a5568"/>
+  <circle class="ring" cx="585.0" cy="450" r="140"/>
+  <circle cx="585.0" cy="450" r="128" fill="#0a3aa8"/>
+  <path d="M724 200 q10 12 0 24" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/><path d="M734 192 q16 20 0 40" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+  <rect class="lcd" x="465.0" y="396" width="240" height="108" rx="8"/>
+  <text x="481.0" y="442" style="font-family:monospace;font-size:21px;fill:#2f4a29">1번 세탁기 세탁중</text><text x="481.0" y="480" style="font-family:monospace;font-size:21px;fill:#2f4a29">남은 시간 12분</text>
+  <circle class="btn" cx="525.0" cy="618" r="18"/>
+  <circle class="w" cx="615.0" cy="610" r="4.5"/>
+  <circle class="w" cx="633.0" cy="610" r="4.5"/>
+  <circle class="w" cx="651.0" cy="610" r="4.5"/>
+  <circle class="w" cx="615.0" cy="628" r="4.5"/>
+  <circle class="w" cx="633.0" cy="628" r="4.5"/>
+  <circle class="w" cx="651.0" cy="628" r="4.5"/>
+  <text x="420" y="694" class="n">왼쪽 위 점 3개 = 상태 LED(빨강·노랑·초록), 오른쪽 위 렌즈 = 카메라</text>
+  <text x="420" y="714" class="n">큰 원 안 = LCD, 아래 = 수거 버튼과 소리 구멍</text>
+  <text x="420" y="734" class="n">크기 110 x 75 x 170mm 정도, 앱 로고와 같은 색</text>
+  <text x="830" y="130" class="h">옆면 (내부)</text>
+  <path d="M830 180 Q830 150 866 150 L1020 150 Q1055 150 1055 180 L1055 636 Q1055 660 1020 660 L866 660 Q830 660 830 636 Z" class="body"/>
+  <g transform="rotate(12 834 212)"><rect x="812" y="190" width="30" height="46" rx="6" fill="#0b0f14" stroke="#fff" stroke-width="4"/></g>
+  <text x="860" y="142" class="n" style="fill:#53655a"></text>
+  <rect class="pcb" x="890" y="186" width="120" height="70" rx="5"/><text x="902" y="228" class="n">ESP32-CAM</text>
+  <rect class="pcb" x="890" y="300" width="120" height="110" rx="5"/><text x="902" y="360" class="n">ESP32 DevKitC</text>
+  <rect x="890" y="450" width="120" height="40" rx="5" fill="#cfe8d6" stroke="#3c7959" stroke-width="2"/><text x="902" y="476" class="n">만능기판</text>
+  <rect x="890" y="592" width="70" height="26" rx="4" fill="#2d6cdf"/><text x="890" y="584" class="n" style="fill:#fff">MPU6050</text>
+  <rect x="850" y="660" width="34" height="10" rx="3" fill="#6b7c72"/>
+  <rect x="1000" y="660" width="34" height="10" rx="3" fill="#6b7c72"/>
+  <text x="820" y="694" class="n">렌즈는 아래로 10~15도 기울여 둠</text>
+  <text x="820" y="714" class="n">아래 짙은 부분 = 자석</text>
+  <text x="820" y="734" class="n">뒷면에 USB 케이블 구멍</text>
+  <text x="40" y="800" class="h">③ 세탁기 위에 올린 모습 (옆에서 본 모습)</text>
+  <rect class="washer" x="60" y="950" width="800" height="50" rx="6"/><text x="320" y="982" class="t">기존 세탁기 윗면</text>
+  <rect class="washer" x="800" y="950" width="60" height="140"/>
+  <rect class="panel" x="808" y="960" width="44" height="40" rx="3"/><rect x="814" y="970" width="32" height="14" fill="#190b0b"/><text x="820" y="982" style="font-family:monospace;font-size:10px;fill:#ff4b3a">12</text>
+  <text x="705" y="942" class="t">세탁기 표시창</text>
+  <path d="M80 950 L80 826 Q80 810 96 810 L140 810 Q156 810 156 826 L156 950 Z" class="body"/>
+  <circle cx="150" cy="840" r="10" fill="#0b0f14" stroke="#fff" stroke-width="3"/>
+  <path class="cone" d="M150 840 L808 948 L808 1000 Z"/><path class="line" d="M150 840 L810 974"/>
+  <path d="M156 1020 H806" stroke="#7a4fb5" stroke-width="2" fill="none"/><text x="330" y="1038" class="dim">40~60cm (시험 후 확정)</text>
+  <text x="170" y="826" class="t">렌즈 (본체 안 카메라)</text>
+  <text x="40" y="1080" class="n">장대 없이 본체 높이(약 17cm)만으로 표시창을 20도 안팎으로 내려다봐요. 사용자는 패널을 그대로 볼 수 있어요.</text>
+</svg>
